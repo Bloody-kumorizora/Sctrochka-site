@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /profile.html
+Disallow: /certificate.html
+
+Sitemap: https://bloody-kumorizora.github.io/Sctrochka-site/sitemap.xml

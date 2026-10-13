@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Конфиденциальность и обработка данных — Stroka</title>
+  <meta name="description" content="Какие данные собирает платформа Stroka, где они хранятся и как их удалить.">
+  <link rel="canonical" href="https://bloody-kumorizora.github.io/Sctrochka-site/privacy.html">
+  <meta property="og:site_name" content="Stroka">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="ru_RU">
+  <meta property="og:title" content="Конфиденциальность и обработка данных — Stroka">
+  <meta property="og:description" content="Какие данные собирает платформа Stroka, где они хранятся и как их удалить.">
+  <meta property="og:url" content="https://bloody-kumorizora.github.io/Sctrochka-site/privacy.html">
+  <meta property="og:image" content="https://bloody-kumorizora.github.io/Sctrochka-site/img/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#f5f3ee" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0e0e13" media="(prefers-color-scheme: dark)">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="img/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+  <link rel="preload" href="fonts/onest-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/unbounded-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="css/style.css">
+  <script>try{var t=localStorage.getItem('stroka-theme');if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body data-page="privacy">
+  <header id="hdr"></header>
+  <main id="app">
+    <div class="container legal" style="padding-top:40px;padding-bottom:96px">
+      <span class="eyebrow"><b>§</b> Документы</span>
+      <h1>Конфиденциальность и обработка данных</h1>
+      <p class="lead">Здесь простым языком описано, какие данные собирает сайт, зачем и где они хранятся.</p>
+      <div class="msg msg-warn" id="operator-note"><svg class="i" aria-hidden="true"><use href="#i-info"/></svg><p>Владелец сайта (оператор данных) указан на странице <a href="about.html">«Об авторе»</a>. Если вы владелец: проверьте этот текст с учётом требований законодательства вашей страны (в России — 152-ФЗ «О персональных данных») и дополните его реквизитами оператора.</p></div>
+      <h2>Какие данные мы собираем</h2>
+      <ul>
+        <li><strong>При регистрации:</strong> имя, email и пароль. Пароль не хранится в открытом виде: сохраняется только его хэш с солью.</li>
+        <li><strong>При обучении:</strong> записи на курсы, отметки о пройденных уроках, дата и результат теста.</li>
+        <li><strong>В форме обратной связи:</strong> имя, email, тема, текст сообщения и страница, с которой оно отправлено.</li>
+      </ul>
+      <h2>Где хранятся данные</h2>
+      <p>Данные аккаунтов, прогресса и обращений хранятся в таблице Google Sheets владельца сайта и обрабатываются через Google Apps Script. Доступ к таблице есть только у владельца сайта.</p>
+      <p>Заметки к урокам, избранное и выбранная тема оформления хранятся только в вашем браузере (localStorage) и никуда не передаются.</p>
+      <h2>Сторонние сервисы</h2>
+      <ul>
+        <li><strong>Google Apps Script и Google Sheets</strong> — хранение данных аккаунтов и прогресса.</li>
+        <li><strong>Видеосервисы</strong> (YouTube, Vimeo, Rutube, VK Видео) — только в уроках, где встроено видео.</li>
+      </ul>
+      <p>Шрифты загружаются с этого же сайта. Сайт не использует рекламные трекеры и сервисы веб-аналитики.</p>
+      <h2>Зачем нужны данные</h2>
+      <p>Email и пароль — для входа в аккаунт. Прогресс — чтобы показывать пройденные уроки и продолжать обучение с любого устройства. Данные из формы обратной связи — только для ответа на ваше сообщение.</p>
+      <h2>Как удалить данные</h2>
+      <p>Напишите через <a href="help.html#contact">форму обратной связи</a> с email, на который зарегистрирован аккаунт, — аккаунт и связанные с ним записи будут удалены. Данные в браузере можно удалить самостоятельно, очистив данные сайта в настройках браузера.</p>
+    </div>
+  </main>
+
+  <script src="js/config.js" defer></script>
+  <script src="js/db.js" defer></script>
+  <script src="js/app.js" defer></script>
+  <script src="js/privacy.js" defer></script>
+</body>
+</html>

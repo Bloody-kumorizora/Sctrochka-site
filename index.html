@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stroka — школа веб-разработки: от первой строки кода до своего сайта</title>
+  <meta name="description" content="Курсы по созданию сайтов: HTML, CSS, JavaScript, React, Next.js, Node.js, SQL, Git, дизайн интерфейсов и практические проекты. Программы, демо-уроки с заданиями и тестами, сохранение прогресса.">
+  <link rel="canonical" href="https://bloody-kumorizora.github.io/Sctrochka-site/">
+  <meta property="og:site_name" content="Stroka">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="ru_RU">
+  <meta property="og:title" content="Stroka — школа веб-разработки">
+  <meta property="og:description" content="От первой строки кода до своего сайта: курсы по вёрстке, JavaScript, фреймворкам, бэкенду и дизайну с практикой в каждом уроке.">
+  <meta property="og:url" content="https://bloody-kumorizora.github.io/Sctrochka-site/">
+  <meta property="og:image" content="https://bloody-kumorizora.github.io/Sctrochka-site/img/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#f5f3ee" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0e0e13" media="(prefers-color-scheme: dark)">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="img/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+  <link rel="preload" href="fonts/onest-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/unbounded-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="css/style.css">
+  <script>try{var t=localStorage.getItem('stroka-theme');if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Stroka","url":"https://bloody-kumorizora.github.io/Sctrochka-site/","inLanguage":"ru","potentialAction":{"@type":"SearchAction","target":"https://bloody-kumorizora.github.io/Sctrochka-site/catalog.html?q={query}","query-input":"required name=query"}}</script>
+</head>
+<body data-page="home">
+  <header id="hdr"></header>
+
+  <main id="app">
+    <!-- 01 · Главный экран -->
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <span class="eyebrow"><b>01</b> Школа веб-разработки</span>
+          <h1>От первой строки кода до <span class="mark">своего сайта</span></h1>
+          <p class="lead">Курсы по вёрстке, JavaScript, фреймворкам, бэкенду и дизайну. Понятная программа, практика в каждом уроке и прогресс, который сохраняется в вашем аккаунте.</p>
+          <div class="hero-actions">
+            <a class="btn btn-lg" href="catalog.html">Выбрать курс <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+            <a class="btn btn-lg btn-ghost" href="#start">С чего начать?</a>
+          </div>
+          <div class="hero-facts" id="hero-facts" aria-live="polite">
+            <div><strong data-stat="courses">22</strong><span>курса в каталоге</span></div>
+            <div><strong data-stat="lessons">218</strong><span>уроков в программах</span></div>
+            <div><strong data-stat="demo">48</strong><span>открытых уроков</span></div>
+          </div>
+        </div>
+        <div class="hero-visual" aria-hidden="true">
+          <div class="hero-bg-num">&lt;/&gt;</div>
+          <div class="editor">
+            <div class="editor-bar"><i></i><i></i><i></i><span>index.html</span></div>
+            <pre id="hero-code"><span class="ln"><span class="t-k">&lt;section</span> <span class="t-a">class</span>=<span class="t-s">"hero"</span><span class="t-k">&gt;</span></span><span class="ln">  <span class="t-k">&lt;h1&gt;</span>Мой первый сайт<span class="t-k">&lt;/h1&gt;</span></span><span class="ln">  <span class="t-k">&lt;p&gt;</span>Сделан своими руками<span class="t-k">&lt;/p&gt;</span></span><span class="ln">  <span class="t-k">&lt;a</span> <span class="t-a">class</span>=<span class="t-s">"btn"</span> <span class="t-a">href</span>=<span class="t-s">"#start"</span><span class="t-k">&gt;</span></span><span class="ln">    Начать</span><span class="ln">  <span class="t-k">&lt;/a&gt;</span></span><span class="ln is-active"><span class="t-k">&lt;/section&gt;</span><span class="type-caret"></span></span><span class="ln"></span><span class="ln"><span class="t-c">/* style.css */</span></span><span class="ln"><span class="t-p">.btn</span> { <span class="t-a">padding</span>: <span class="t-n">12px 22px</span>; }</span></pre>
+          </div>
+          <div class="preview">
+            <div class="preview-bar"><span>localhost:8080</span></div>
+            <div class="preview-body">
+              <div class="pv-nav"><i></i><i></i><i></i></div>
+              <div class="pv-title">Мой первый сайт</div>
+              <div class="pv-text"></div>
+              <div class="pv-text short"></div>
+              <span class="pv-btn">Начать</span>
+            </div>
+          </div>
+          <div class="float-chip c1"><span class="dot"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg></span><span>Урок пройден<small>Тест: 3 из 3</small></span></div>
+          <div class="float-chip c2"><span>Каркас HTML-документа<small>Урок 2 · 15 минут</small></span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02 · Рекомендуемые курсы -->
+    <section class="section" id="featured" aria-labelledby="featured-title">
+      <div class="container">
+        <div class="section-head" data-reveal>
+          <div>
+            <span class="eyebrow"><b>02</b> Рекомендуем начать</span>
+            <h2 id="featured-title">Курсы, с которых удобно стартовать</h2>
+          </div>
+          <p>Подборка автора: базовые курсы и первый практикум. В каждом уже открыты вводные уроки — можно начать прямо сейчас, без регистрации.</p>
+        </div>
+        <div class="featured-grid" id="featured-grid">
+          <div class="feature feature-big skeleton" aria-hidden="true"></div>
+          <div class="feature feature-side skeleton" aria-hidden="true"></div>
+          <div class="feature feature-side skeleton" aria-hidden="true"></div>
+        </div>
+        <p style="margin-top:28px"><a class="btn btn-ghost" href="catalog.html">Весь каталог <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a></p>
+      </div>
+    </section>
+
+    <!-- 03 · Направления -->
+    <section class="section" id="tracks" aria-labelledby="tracks-title" style="padding-top:0">
+      <div class="container">
+        <div class="section-head" data-reveal>
+          <div>
+            <span class="eyebrow"><b>03</b> Направления</span>
+            <h2 id="tracks-title">Выберите направление — увидите маршрут</h2>
+          </div>
+          <p>Курсы внутри направления выстроены по порядку: от основ к более сложным темам.</p>
+        </div>
+        <div class="tracks" id="tracks-box">
+          <div class="track-tabs" role="tablist" aria-label="Направления обучения" id="track-tabs"></div>
+          <div class="track-panel" role="tabpanel" id="track-panel" tabindex="0" aria-live="polite"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 04 · С чего начать -->
+    <section class="section" id="start" aria-labelledby="start-title" style="background:var(--bg-2)">
+      <div class="container">
+        <div class="section-head" data-reveal>
+          <div>
+            <span class="eyebrow"><b>04</b> С чего начать</span>
+            <h2 id="start-title">Два вопроса — и готовый маршрут</h2>
+          </div>
+          <p>Если вы впервые выбираете курс по программированию, ответьте на два вопроса. Маршрут можно поменять в любой момент.</p>
+        </div>
+        <div class="starter">
+          <form class="starter-form" id="starter-form">
+            <fieldset>
+              <legend><b>1/2</b>Какой у вас опыт?</legend>
+              <div class="option-grid">
+                <label class="option"><input type="radio" name="exp" value="zero" checked><span>Никогда не писал код<small>Начнём с самого начала</small></span></label>
+                <label class="option"><input type="radio" name="exp" value="html"><span>Знаю немного HTML и CSS<small>Верстал простые страницы</small></span></label>
+                <label class="option"><input type="radio" name="exp" value="js"><span>Пишу на JavaScript<small>Делал небольшие проекты</small></span></label>
+                <label class="option"><input type="radio" name="exp" value="fw"><span>Работаю с фреймворком<small>React, Vue или похожим</small></span></label>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend><b>2/2</b>Чего хотите добиться?</legend>
+              <div class="option-grid">
+                <label class="option"><input type="radio" name="goal" value="site" checked><span>Сделать свой сайт<small>Лендинг, блог, портфолио</small></span></label>
+                <label class="option"><input type="radio" name="goal" value="frontend"><span>Стать фронтенд-разработчиком<small>Интерфейсы и приложения</small></span></label>
+                <label class="option"><input type="radio" name="goal" value="fullstack"><span>Освоить и сервер тоже<small>API, базы данных, авторизация</small></span></label>
+                <label class="option"><input type="radio" name="goal" value="design"><span>Делать интерфейсы красивыми<small>UI/UX и работа с макетами</small></span></label>
+              </div>
+            </fieldset>
+          </form>
+          <div class="starter-result" id="starter-result" aria-live="polite">
+            <span class="eyebrow"><b>→</b> Ваш маршрут</span>
+            <h3>Загружаем маршрут…</h3>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 05 · Проекты -->
+    <section class="section" id="projects" aria-labelledby="projects-title">
+      <div class="container">
+        <div class="section-head" data-reveal>
+          <div>
+            <span class="eyebrow"><b>05</b> Учебные проекты</span>
+            <h2 id="projects-title">Что вы сможете сделать сами</h2>
+          </div>
+          <p>Каждый практикум заканчивается работающим проектом, который можно опубликовать и показать в портфолио.</p>
+        </div>
+        <div class="projects">
+          <article class="project" data-reveal>
+            <div class="project-art"><div class="wf"><div class="wf-row"><i class="ink" style="width:40px"></i><i style="width:24px;margin-left:auto"></i><i style="width:24px"></i><i class="ac" style="width:46px;height:14px;border-radius:7px"></i></div><i class="wf-hero lm" style="width:70%"></i><i style="width:55%"></i><i class="ac" style="width:84px;height:18px;border-radius:9px"></i><div class="wf-grid"><i></i><i></i><i></i></div></div></div>
+            <div class="project-body"><span class="tag">HTML · CSS · JS</span><h3>Лендинг с формой заявки</h3><p>Адаптивная страница с главным экраном, услугами, этапами работы, FAQ и формой с проверкой полей.</p><a class="btn-text" href="course.html?id=project-landing-blog">Практикум «Лендинг и блог» <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a></div>
+          </article>
+          <article class="project" data-reveal>
+            <div class="project-art"><div class="wf"><div class="wf-row"><i class="ink" style="width:40px"></i><i style="width:30px;margin-left:auto"></i></div><i class="co" style="height:60px"></i><i style="width:80%"></i><i style="width:92%"></i><i style="width:60%"></i><div class="wf-row"><i class="tag-wf ac" style="width:36px"></i><i style="width:36px"></i></div></div></div>
+            <div class="project-body"><span class="tag">HTML · CSS</span><h3>Блог со статьями и тегами</h3><p>Лента записей, страницы тегов и удобная для чтения страница статьи с оглавлением.</p><a class="btn-text" href="course.html?id=project-landing-blog">Практикум «Лендинг и блог» <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a></div>
+          </article>
+          <article class="project" data-reveal>
+            <div class="project-art"><div class="wf"><div class="wf-row"><i style="flex:1;height:14px"></i><i class="ac" style="width:20px;height:14px"></i></div><div class="wf-grid"><i class="lm"></i><i></i><i class="co"></i></div><div class="wf-grid"><i></i><i class="ac"></i><i></i></div></div></div>
+            <div class="project-body"><span class="tag">JavaScript</span><h3>Каталог с фильтрами</h3><p>Поиск, фильтры и сортировка, состояние в адресе страницы, пустые состояния.</p><a class="btn-text" href="course.html?id=project-shop-catalog">Практикум «Каталог и магазин» <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a></div>
+          </article>
+          <article class="project" data-reveal>
+            <div class="project-art"><div class="wf"><div class="wf-row"><i class="lm" style="width:42px;height:42px;border-radius:8px"></i><span style="flex:1;display:grid;gap:6px"><i style="width:70%"></i><i style="width:40%"></i></span><i class="ink" style="width:30px"></i></div><div class="wf-row"><i class="ac" style="width:42px;height:42px;border-radius:8px"></i><span style="flex:1;display:grid;gap:6px"><i style="width:60%"></i><i style="width:30%"></i></span><i class="ink" style="width:30px"></i></div><i style="height:2px"></i><div class="wf-row"><i style="width:50px"></i><i class="ink" style="width:60px;margin-left:auto;height:12px"></i></div></div></div>
+            <div class="project-body"><span class="tag">JavaScript · localStorage</span><h3>Корзина интернет-магазина</h3><p>Добавление товаров, количество, итоговая сумма и сохранение между визитами.</p><a class="btn-text" href="course.html?id=project-shop-catalog">Практикум «Каталог и магазин» <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a></div>
+          </article>
+          <article class="project" data-reveal>
+            <div class="project-art"><div class="wf" style="grid-template-columns:44px 1fr"><div style="display:grid;gap:8px;align-content:start"><i class="ink" style="height:20px"></i><i></i><i class="ac"></i><i></i></div><div style="display:grid;gap:8px"><div class="wf-row"><i class="lm" style="flex:1;height:30px"></i><i style="flex:1;height:30px"></i></div><i style="height:40px"></i><i style="width:70%"></i></div></div></div>
+            <div class="project-body"><span class="tag">Node.js · SQL</span><h3>Личный кабинет</h3><p>Регистрация, вход, профиль и данные, которые видит только их владелец.</p><a class="btn-text" href="course.html?id=project-webapp">Практикум «Веб-приложение» <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a></div>
+          </article>
+          <article class="project" data-reveal>
+            <div class="project-art"><div class="wf"><div class="wf-row"><i class="ink" style="width:40px"></i><i style="width:20px;margin-left:auto;border-radius:50%;height:20px"></i></div><div class="wf-grid" style="grid-template-columns:repeat(7,1fr)"><i class="lm" style="height:18px"></i><i class="lm" style="height:18px"></i><i style="height:18px"></i><i class="lm" style="height:18px"></i><i class="lm" style="height:18px"></i><i class="lm" style="height:18px"></i><i style="height:18px"></i></div><div class="wf-row" style="align-items:flex-end;height:50px"><i class="ac" style="width:14%;height:30%"></i><i class="ac" style="width:14%;height:60%"></i><i class="ac" style="width:14%;height:45%"></i><i class="ac" style="width:14%;height:90%"></i><i class="ac" style="width:14%;height:70%"></i></div></div></div>
+            <div class="project-body"><span class="tag">Fullstack</span><h3>Веб-приложение целиком</h3><p>Трекер привычек: свой API, база данных, статистика, тесты и публикация.</p><a class="btn-text" href="course.html?id=project-webapp">Практикум «Веб-приложение» <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- 06 · Преимущества -->
+    <section class="section" aria-labelledby="values-title" style="padding-top:0">
+      <div class="container">
+        <div class="section-head" data-reveal>
+          <div>
+            <span class="eyebrow"><b>06</b> Как устроено обучение</span>
+            <h2 id="values-title">Без лишнего шума — только то, что помогает учиться</h2>
+          </div>
+        </div>
+        <div class="values">
+          <div class="value" data-reveal>
+            <div class="value-num" data-stat="courses">22</div>
+            <h3>Программа видна целиком ещё до старта</h3>
+            <p>На странице каждого курса — модули, уроки и честный статус: что уже открыто, а что в разработке.</p>
+          </div>
+          <div class="value" data-reveal>
+            <svg class="i" aria-hidden="true"><use href="#i-target"/></svg>
+            <h3>Практика в каждом уроке</h3>
+            <p>Задания, которые нужно сделать руками, и короткий тест с проверкой ответов и пояснениями.</p>
+          </div>
+          <div class="value" data-reveal>
+            <svg class="i" aria-hidden="true"><use href="#i-check"/></svg>
+            <h3>Прогресс сохраняется</h3>
+            <p>Отметки о пройденных уроках хранятся в вашем аккаунте — продолжайте с любого устройства.</p>
+          </div>
+          <div class="value" data-reveal>
+            <svg class="i" aria-hidden="true"><use href="#i-note"/></svg>
+            <h3>Заметки и избранное</h3>
+            <p>Записывайте мысли прямо в уроке и откладывайте интересные курсы на потом.</p>
+          </div>
+          <div class="value" data-reveal>
+            <svg class="i" aria-hidden="true"><use href="#i-moon"/></svg>
+            <h3>Удобно на телефоне и ночью</h3>
+            <p>Интерфейс рассчитан на мобильные экраны, есть тёмная тема и управление с клавиатуры.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 07 · Как выглядит урок -->
+    <section class="section" aria-labelledby="demo-title" style="padding-top:0">
+      <div class="container">
+        <div class="section-head" data-reveal>
+          <div>
+            <span class="eyebrow"><b>07</b> Внутри урока</span>
+            <h2 id="demo-title">Читаете, пробуете, проверяете себя</h2>
+          </div>
+          <p>Так устроен каждый открытый урок: программа слева, объяснение с примерами кода, задания и тест. Попробуйте ответить на вопрос ниже.</p>
+        </div>
+        <div class="demo" data-reveal>
+          <aside class="demo-side" aria-label="Пример программы курса">
+            <p class="demo-side-title">HTML и семантическая вёрстка</p>
+            <ol>
+              <li class="done"><span class="st"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg></span>Как браузер показывает страницу</li>
+              <li class="on"><span class="st"></span>Каркас HTML-документа</li>
+              <li><span class="st"></span>Текст, заголовки и списки</li>
+              <li><span class="st"></span>Ссылки и изображения</li>
+            </ol>
+          </aside>
+          <div class="demo-main">
+            <span class="eyebrow"><b>2</b> Урок 2 из 4 · 15 минут</span>
+            <h3>Каркас HTML-документа</h3>
+            <p class="muted">У каждой страницы одинаковый «скелет». Строка с viewport отвечает за то, как страница выглядит на телефоне.</p>
+            <figure class="code"><figcaption><span>HTML</span></figcaption><pre tabindex="0"><code><span class="t-k">&lt;meta</span> <span class="t-a">name</span>=<span class="t-s">"viewport"</span> <span class="t-a">content</span>=<span class="t-s">"width=device-width, initial-scale=1"</span><span class="t-k">&gt;</span></code></pre></figure>
+            <div class="demo-q" id="demo-q">
+              <p id="demo-q-title">Что покажет телефон, если убрать эту строку?</p>
+              <div class="chips" role="group" aria-labelledby="demo-q-title">
+                <button type="button" class="chip" data-answer="0">Ошибку загрузки</button>
+                <button type="button" class="chip" data-answer="1">Уменьшенную копию десктопной версии</button>
+                <button type="button" class="chip" data-answer="0">Страницу без картинок</button>
+              </div>
+              <p class="demo-feedback" id="demo-feedback" aria-live="polite"></p>
+            </div>
+            <p style="margin-top:22px;margin-bottom:0"><a class="btn" href="lesson.html?id=html-basics.1.2">Открыть этот урок <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 08 · Об авторе -->
+    <section class="section" aria-labelledby="author-title" style="padding-top:0">
+      <div class="container">
+        <div class="author-teaser" id="author-teaser" data-reveal>
+          <div class="portrait" id="author-portrait"><span class="portrait-mono" aria-hidden="true">s<span class="type-caret"></span></span></div>
+          <div>
+            <span class="eyebrow"><b>08</b> Автор проекта</span>
+            <h2 id="author-title">Stroka — авторский проект</h2>
+            <p class="lead" id="author-intro">Платформу создаёт и развивает независимый автор: пишет программы курсов, уроки и задания, отвечает на вопросы учеников.</p>
+            <div class="hero-actions">
+              <a class="btn btn-dark" href="about.html">Об авторе <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+              <a class="btn btn-ghost" href="help.html#contact">Задать вопрос</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 09 · Отзывы (показываются, только если в js/config.js есть реальные отзывы) -->
+    <section class="section" id="reviews" aria-labelledby="reviews-title" hidden style="padding-top:0">
+      <div class="container">
+        <div class="section-head"><div><span class="eyebrow"><b>09</b> Отзывы</span><h2 id="reviews-title">Что говорят ученики</h2></div></div>
+        <div class="reviews" id="reviews-list"></div>
+      </div>
+    </section>
+
+    <!-- 10 · FAQ -->
+    <section class="section" id="faq" aria-labelledby="faq-title" style="padding-top:0">
+      <div class="container faq">
+        <div data-reveal>
+          <span class="eyebrow"><b>10</b> Вопросы</span>
+          <h2 id="faq-title">Частые вопросы</h2>
+          <p class="muted">Не нашли ответ? Загляните в <a href="help.html">раздел помощи</a> или напишите автору.</p>
+        </div>
+        <div class="faq-list">
+          <details class="faq-item"><summary>Нужно ли платить за курсы?</summary><div class="answer"><p>Сейчас на платформе нет оплаты: все опубликованные уроки открыты. Чтобы сохранять прогресс, нужна бесплатная регистрация.</p></div></details>
+          <details class="faq-item"><summary>Что означают статусы «Полный курс», «Демо-версия» и «Программа»?</summary><div class="answer"><p><strong>Полный курс</strong> — опубликованы все уроки. <strong>Демо-версия</strong> — открыты вводные уроки с заданиями и тестами, остальные уроки программы в разработке. <strong>Программа</strong> — опубликован план курса, уроки готовятся. Статус всегда указан в карточке и на странице курса.</p></div></details>
+          <details class="faq-item"><summary>Мне нужен опыт программирования?</summary><div class="answer"><p>Нет. Курсы «HTML и семантическая вёрстка» и «JavaScript с нуля» рассчитаны на тех, кто никогда не писал код. Для каждого курса указаны требования для старта.</p></div></details>
+          <details class="faq-item"><summary>Как сохраняется прогресс?</summary><div class="answer"><p>Когда вы отмечаете урок пройденным или проходите тест, отметка сохраняется в вашем аккаунте. Заметки к урокам и избранное хранятся в браузере на этом устройстве.</p></div></details>
+          <details class="faq-item"><summary>Выдаётся ли сертификат?</summary><div class="answer"><p>Для полных курсов после прохождения всех уроков формируется подтверждение прохождения, которое можно распечатать. Это не документ об образовании. Для демо-версий и программ подтверждение не формируется.</p></div></details>
+          <details class="faq-item"><summary>Есть ли видео?</summary><div class="answer"><p>Уроки в основном текстовые, с примерами кода, которые можно скопировать, заданиями и тестами. Видео встраивается в те уроки, где автор его добавил.</p></div></details>
+          <details class="faq-item"><summary>С какого курса начать?</summary><div class="answer"><p>Ответьте на два вопроса в разделе <a href="#start">«С чего начать»</a> — получите маршрут из нескольких курсов. Если сомневаетесь, начните с HTML.</p></div></details>
+        </div>
+      </div>
+    </section>
+
+    <!-- 11 · Финальный призыв -->
+    <section class="section" style="padding-top:0">
+      <div class="container">
+        <div class="cta" data-reveal>
+          <pre class="cta-art" aria-hidden="true">const you = new Developer();
+you.learn(<b>'HTML'</b>);
+you.learn(<b>'CSS'</b>);
+you.learn(<b>'JavaScript'</b>);
+you.build(<b>'свой сайт'</b>);
+// → опубликовано ✓</pre>
+          <span class="eyebrow on-dark"><b>11</b> Следующий шаг</span>
+          <h2>Первая строка кода — сегодня</h2>
+          <p>Откройте вводный урок: это займёт 15 минут, регистрация для чтения не нужна.</p>
+          <div class="hero-actions">
+            <a class="btn btn-lg btn-lime" href="lesson.html?id=html-basics.1.1">Начать с HTML <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+            <a class="btn btn-lg btn-light" href="catalog.html">Смотреть каталог</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="js/config.js" defer></script>
+  <script src="js/db.js" defer></script>
+  <script src="js/app.js" defer></script>
+  <script src="data/catalog.js" defer></script>
+  <script src="js/courses.js" defer></script>
+  <script src="js/home.js" defer></script>
+</body>
+</html>
