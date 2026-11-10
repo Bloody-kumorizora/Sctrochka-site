@@ -8,7 +8,7 @@ window.STROKA_CONFIG = {
 
   // Адрес веб-приложения Google Apps Script (Развернуть → Веб-приложение → URL).
   // Это публичный адрес, секретом он не является. Секреты сюда не кладите.
-  apiUrl: 'https://script.google.com/macros/s/AKfycbyFNzuuV9trn3g98Viok0ccVJyjG8ayqUjytI1lssHmMEP79EBnF5TemmL4rmB2XAfO/exec',
+  apiUrl: 'https://script.google.com/macros/s/AKfycbzDIND7vWAdL_ntDlBLBpDSmc9r4D2cVs3qSLPUqogX4aBq1vd0hCKnKL2mTosHQESsRQ/exec',
 
   // 'sheets' — Google Таблица (основной режим);
   // 'local'  — демо-данные в localStorage браузера, для разработки без сети.
