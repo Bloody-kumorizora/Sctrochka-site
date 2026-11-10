@@ -226,12 +226,22 @@
         avatarBtn.setAttribute('aria-expanded', String(!menu.hidden));
         if (!menu.hidden) { const first = $('a,button', menu); if (first) first.focus(); }
       });
-      document.addEventListener('click', e => { if (!menu.contains(e.target)) close(); });
       menu.addEventListener('keydown', e => { if (e.key === 'Escape') { close(); avatarBtn.focus(); } });
     }
     ensureFooter();
     ensureContactButton();
   }
+
+  // Клик вне меню аккаунта закрывает его. Обработчик один на страницу:
+  // шапка перерисовывается (например, при истечении сессии), и раньше
+  // при каждой перерисовке добавлялся ещё один.
+  document.addEventListener('click', e => {
+    const menu = document.getElementById('account-menu');
+    if (!menu || menu.hidden || menu.contains(e.target)) return;
+    menu.hidden = true;
+    const btn = document.querySelector('.avatar-btn');
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+  });
 
   /* ================= подвал ================= */
   function contactLinks(cls = '') {

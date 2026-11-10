@@ -1,7 +1,8 @@
 // db.js — работа с данными (Google Таблица через Apps Script).
 //
 // Поддерживает два варианта серверного скрипта:
-//  - v2  (apps-script/Code.gs из этого репозитория): сессии, проверка прав на сервере;
+//  - v2  (apps-script/Code.gs из этого репозитория): сессии, проверка прав на сервере,
+//    курсы/уроки/вопросы одним запросом (action=public);
 //  - legacy (прежний скрипт: list/add/update/delete) — чтобы сайт продолжал
 //    работать, пока новый скрипт не развёрнут. Режим определяется автоматически.
 // Плюс режим 'local' (демо-данные в localStorage) для разработки без сети.
@@ -14,7 +15,11 @@
   const cfg = window.STROKA_CONFIG || {};
   const API_URL = cfg.apiUrl;
   const TIMEOUT_MS = 12000;
-  const PUBLIC_TTL_MS = 5 * 60 * 1000;
+  // Сколько браузер держит копию курсов из таблицы. Небольшое значение —
+  // чтобы правки, сделанные прямо в таблице, быстро появлялись на сайте.
+  const PUBLIC_TTL_MS = 30 * 1000;
+  // Как часто перепроверять, не обновили ли серверный скрипт до v2
+  const LEGACY_RECHECK_MS = 60 * 1000;
   const CACHE_PREFIX = 'stroka:cache:';
   const TOKEN_KEY = 'stroka_token';
   const USER_KEY = 'current_user'; // тот же ключ, что и раньше
@@ -187,18 +192,24 @@
 
   /* ---------------- определение версии сервера ---------------- */
   let modePromise = null;
+  // Ключ зависит от адреса API: после смены apiUrl режим определяется заново
+  const MODE_KEY = CACHE_PREFIX + 'mode:' + String(API_URL || '').slice(-24);
   function detectMode() {
     if (cfg.dataMode === 'local') return Promise.resolve('local');
     if (modePromise) return modePromise;
-    const cached = sess && store.get(CACHE_PREFIX + 'mode', sess);
-    if (cached === 'v2' || cached === 'legacy') return (modePromise = Promise.resolve(cached));
+    let cached = null;
+    try { cached = JSON.parse(store.get(MODE_KEY, sess) || 'null'); } catch (e) { /* ignore */ }
+    // v2 запоминаем на всю сессию, legacy — ненадолго: вдруг скрипт уже обновили
+    if (cached && (cached.mode === 'v2' || (cached.mode === 'legacy' && Date.now() - cached.t < LEGACY_RECHECK_MS))) {
+      return (modePromise = Promise.resolve(cached.mode));
+    }
     modePromise = http('GET', { params: { action: 'info' }, retries: 1 })
       .then(data => (data && Number(data.version) >= 2 ? 'v2' : 'legacy'))
       .catch(err => {
-        if (['offline', 'timeout', 'network'].includes(err.code)) { modePromise = null; throw err; }
+        if (['offline', 'timeout', 'network', 'config'].includes(err.code)) { modePromise = null; throw err; }
         return 'legacy'; // прежний скрипт не знает action=info
       })
-      .then(mode => { if (sess) store.set(CACHE_PREFIX + 'mode', mode, sess); return mode; });
+      .then(mode => { if (sess) store.set(MODE_KEY, JSON.stringify({ mode, t: Date.now() }), sess); return mode; });
     return modePromise;
   }
   async function rawAdapter() {
@@ -250,20 +261,27 @@
     const key = 'public:' + sheet;
     const hit = cacheRead(key);
     if (!fresh && hit && Date.now() - hit.t < PUBLIC_TTL_MS) return hit.data;
-    return once(key, async () => {
-      try {
-        const mode = await detectMode();
+    try {
+      const mode = await detectMode();
+      if (mode === 'v2') {
+        // Курсы, уроки и вопросы — одним запросом: страница курса раньше делала три
+        const bundle = await once('public:bundle', () => http('GET', { params: { action: 'public' }, retries: 1 }));
+        if (!bundle || !PUBLIC_SHEETS.every(s => Array.isArray(bundle[s]))) throw new ApiError('bad_response', MESSAGES.bad_response);
+        PUBLIC_SHEETS.forEach(s => cacheWrite('public:' + s, bundle[s]));
+        return bundle[sheet];
+      }
+      return await once(key, async () => {
         let rows = mode === 'local' ? await local.getAll(sheet) : await http('GET', { params: { action: 'list', sheet }, retries: 1 });
         if (!Array.isArray(rows)) throw new ApiError('bad_response', MESSAGES.bad_response);
-        if (sheet === 'courses' && mode !== 'v2') rows = rows.filter(r => String(r.status || '').trim() === 'published');
+        if (sheet === 'courses') rows = rows.filter(r => String(r.status || '').trim() === 'published');
         cacheWrite(key, rows);
         return rows;
-      } catch (err) {
-        // Сеть недоступна, но есть старая копия — лучше показать её, чем пустую страницу
-        if (hit) { hit.stale = true; return hit.data; }
-        throw err;
-      }
-    });
+      });
+    } catch (err) {
+      // Сеть недоступна, но есть старая копия — лучше показать её, чем пустую страницу
+      if (hit) { hit.stale = true; return hit.data; }
+      throw err;
+    }
   }
 
   async function register(name, email, password) {
@@ -424,21 +442,27 @@
     },
     async add(sheet, row, reqId) {
       const mode = await detectMode();
-      cacheClear('public:');
-      if (mode === 'v2') return v2('add', { sheet, row, request_id: reqId || requestId() }, { auth: true });
-      return (await rawAdapter()).addRow(sheet, row);
+      const res = mode === 'v2'
+        ? await v2('add', { sheet, row, request_id: reqId || requestId() }, { auth: true })
+        : await (await rawAdapter()).addRow(sheet, row);
+      cacheClear('public:'); // чтобы сайт сразу показал изменения
+      return res;
     },
     async update(sheet, id, values) {
       const mode = await detectMode();
-      cacheClear('public:');
-      if (mode === 'v2') return v2('update', { sheet, id, values }, { auth: true });
-      return (await rawAdapter()).updateRow(sheet, id, values);
+      const res = mode === 'v2'
+        ? await v2('update', { sheet, id, values }, { auth: true })
+        : await (await rawAdapter()).updateRow(sheet, id, values);
+      cacheClear('public:'); // чтобы сайт сразу показал изменения
+      return res;
     },
     async remove(sheet, id) {
       const mode = await detectMode();
-      cacheClear('public:');
-      if (mode === 'v2') return v2('delete', { sheet, id }, { auth: true });
-      return (await rawAdapter()).deleteRow(sheet, id);
+      const res = mode === 'v2'
+        ? await v2('delete', { sheet, id }, { auth: true })
+        : await (await rawAdapter()).deleteRow(sheet, id);
+      cacheClear('public:'); // чтобы сайт сразу показал изменения
+      return res;
     },
     async status() {
       const started = performance.now();

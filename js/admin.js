@@ -281,6 +281,13 @@
       return;
     }
     render();
+    // Переход по ссылке admin.html#… на этой же странице: переключаем вкладку
+    window.addEventListener('hashchange', () => {
+      const next = (location.hash || '#overview').slice(1);
+      if (next === tab) return;
+      tab = next; editing = null; requestId = null;
+      render();
+    });
   }
 
   init();

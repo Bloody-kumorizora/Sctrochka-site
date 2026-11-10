@@ -171,6 +171,10 @@
     // Записи без явной записи на курс (например, урок пройден без записи) — учитываем как начатые
     ids.forEach(id => { if (!my.enrollments.some(e => String(e.course_id) === id) && full[id]) my.enrollments.push({ course_id: id, enrolled_at: '' }); });
     render();
+    window.addEventListener('hashchange', () => {
+      const next = (location.hash || '#courses').slice(1);
+      if (next !== tab) { tab = next; render(); }
+    });
     if (res.sheetError) UI.toast('Курсы из базы автора временно недоступны: ' + UI.errorText(res.sheetError), 'error', 6000);
   }
 
