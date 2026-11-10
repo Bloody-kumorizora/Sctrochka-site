@@ -18,7 +18,7 @@
       return;
     }
     const enrollment = course && my.enrollments.find(e => String(e.course_id) === String(course.id));
-    if (!course || course.source !== 'sheet' || !enrollment || !enrollment.completed_at) {
+    if (!course || course.status !== 'full' || !enrollment || !enrollment.completed_at) {
       app.innerHTML = UI.stateBox('lock', 'Подтверждение пока недоступно', 'Оно формируется для полных курсов после прохождения всех уроков.', '<a class="btn" href="profile.html">В личный кабинет</a>');
       return;
     }

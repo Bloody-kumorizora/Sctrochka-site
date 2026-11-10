@@ -94,19 +94,16 @@
     bind();
     // 1. Встроенный каталог — сразу
     courses = await Courses.builtin();
-    fillFilters();
-    render();
+    if (courses.length) { fillFilters(); render(); } // иначе оставляем «скелет», пока ответит таблица
     // 2. Курсы автора из Google Таблицы — когда ответит сервер
     const res = await Courses.all();
     if (res.sheetError) {
       $('#notice').innerHTML = '<div class="msg msg-warn">' + icon('alert') + '<p>Курсы из базы автора временно недоступны: ' + escapeHtml(UI.errorText(res.sheetError)) + ' Встроенный каталог работает как обычно. <button class="btn-text" type="button" id="retry">Повторить</button></p></div>';
       $('#retry').addEventListener('click', () => { DB.clearCache('public:'); location.reload(); });
     }
-    if (res.courses.length !== courses.length) {
-      courses = res.courses;
-      fillFilters();
-      render();
-    }
+    courses = res.courses;
+    fillFilters();
+    render();
     // 3. Прогресс вошедшего пользователя
     if (DB.currentUser()) {
       try { my = await DB.my(); render(); } catch (e) { /* каталог работает и без прогресса */ }

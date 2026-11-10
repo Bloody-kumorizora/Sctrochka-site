@@ -40,7 +40,7 @@
     const items = enrolledCourses();
     if (tab === 'favorites') {
       const fav = UI.favorites.list().map(id => catalog.find(c => c.id === id)).filter(Boolean);
-      if (!fav.length) return UI.stateBox('empty', 'В избранном пусто', 'Отмечайте курсы сердечком в каталоге, чтобы вернуться к ним позже. Избранное хранится в этом браузере.', '<a class="btn" href="catalog.html">Открыть каталог</a>');
+      if (!fav.length) return UI.stateBox('empty', 'В избранном пусто', 'Отмечайте курсы сердечком в каталоге, чтобы вернуться к ним позже.' + (DB.accountSync() ? ' Избранное хранится в аккаунте.' : ' Избранное хранится в этом браузере.'), '<a class="btn" href="catalog.html">Открыть каталог</a>');
       return '<div class="course-grid">' + fav.map(c => Courses.card(c, Courses.progressFor(c, my))).join('') + '</div>';
     }
     if (tab === 'history') {
@@ -56,11 +56,11 @@
     }
     if (tab === 'notes') {
       const list = notes();
-      if (!list.length) return UI.stateBox('empty', 'Заметок пока нет', 'Пишите заметки прямо в уроках — они появятся здесь. Заметки хранятся только в этом браузере.');
+      if (!list.length) return UI.stateBox('empty', 'Заметок пока нет', 'Пишите заметки прямо в уроках — они появятся здесь.' + (DB.accountSync() ? ' Заметки хранятся в аккаунте и доступны на любом устройстве.' : ' Заметки хранятся только в этом браузере.'));
       return '<div class="course-grid">' + list.map(n => '<div class="note-card"><span class="tag">' + escapeHtml(n.course) + '</span><h3 style="font-size:1rem;margin:10px 0 0"><a href="lesson.html?id=' + encodeURIComponent(n.lessonId) + '">' + escapeHtml(n.lesson) + '</a></h3><p>' + escapeHtml(n.text.length > 400 ? n.text.slice(0, 400) + '…' : n.text) + '</p></div>').join('') + '</div>';
     }
     if (tab === 'certs') {
-      const done = items.filter(x => x.p.completed && x.c.source === 'sheet');
+      const done = items.filter(x => x.p.completed && x.c.status === 'full');
       const note = '<p class="muted" style="font-size:14px">Подтверждение формируется для полных курсов после прохождения всех уроков. Это не документ об образовании.</p>';
       if (!done.length) return UI.stateBox('empty', 'Пока нет завершённых курсов', 'Пройдите все уроки полного курса — здесь появится подтверждение, которое можно распечатать.') + note;
       return '<div class="rows">' + done.map(x => row(x.c, x.p, '<a class="btn btn-sm btn-ghost" href="certificate.html?course=' + encodeURIComponent(x.c.id) + '">Открыть</a>')).join('') + '</div>' + note;
@@ -74,7 +74,7 @@
         '<div class="field"><label for="pw-cur">Текущий пароль</label><input id="pw-cur" type="password" autocomplete="current-password" required></div>' +
         '<div class="field"><label for="pw-new">Новый пароль</label><input id="pw-new" type="password" autocomplete="new-password" minlength="8" required aria-describedby="pw-hint"><span class="hint" id="pw-hint">Минимум 8 символов. После смены другие устройства выйдут из аккаунта.</span></div>' +
         '<button class="btn" type="submit" id="pw-save">Сменить пароль</button></form>' +
-        '<div class="form-card"><h2 style="font-size:1.3rem">Данные и устройство</h2><p class="muted">Прогресс хранится в аккаунте. Заметки, избранное и тема оформления — только в этом браузере.</p>' +
+        '<div class="form-card"><h2 style="font-size:1.3rem">Данные и устройство</h2><p class="muted">' + (DB.accountSync() ? 'Прогресс, заметки и избранное хранятся в аккаунте. Тема оформления — только в этом браузере.' : 'Прогресс хранится в аккаунте. Заметки, избранное и тема оформления — только в этом браузере.') + '</p>' +
         '<p><a href="privacy.html">Как мы обрабатываем данные</a></p><button class="btn btn-ghost" type="button" id="logout">' + icon('logout') + 'Выйти из аккаунта</button></div></div>';
     }
     // мои курсы

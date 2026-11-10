@@ -33,10 +33,17 @@ const SCHEMA = {
   enrollments: ['id', 'user_id', 'course_id', 'enrolled_at', 'completed_at', 'certificate_id'],
   progress: ['id', 'user_id', 'course_id', 'lesson_id', 'completed_at', 'quiz_score'],
   feedback: ['id', 'name', 'email', 'topic', 'message', 'page', 'status', 'created_at', 'user_id'],
+  favorites: ['id', 'user_id', 'course_id', 'created_at'],
+  notes: ['id', 'user_id', 'course_id', 'lesson_id', 'course_title', 'lesson_title', 'text', 'updated_at'],
   sessions: ['token_hash', 'user_id', 'created_at', 'expires_at']
 };
-// Необязательные столбцы курса — создаются при первом сохранении из админ-панели
-const OPTIONAL = { courses: ['subtitle', 'format', 'tags', 'audience', 'requirements', 'outcomes'] };
+// Необязательные столбцы — создаются при первом сохранении из админ-панели или при переносе каталога
+const OPTIONAL = {
+  courses: ['subtitle', 'format', 'tags', 'audience', 'requirements', 'outcomes',
+    'stage', 'access', 'hours', 'order', 'featured', 'next', 'projects', 'glyph', 'tone'],
+  lessons: ['module_summary', 'summary', 'minutes', 'tasks'],
+  questions: ['explain']
+};
 
 const PUBLIC_SHEETS = ['courses', 'lessons', 'questions'];
 const ADMIN_READABLE = ['courses', 'lessons', 'questions', 'users', 'enrollments', 'progress', 'feedback'];
@@ -44,12 +51,20 @@ const ADDABLE = ['courses', 'lessons', 'questions'];
 const DELETABLE = ['courses', 'lessons', 'questions', 'feedback'];
 const EDITABLE = {
   courses: SCHEMA.courses.slice(1).concat(OPTIONAL.courses),
-  lessons: SCHEMA.lessons.slice(1),
-  questions: SCHEMA.questions.slice(1),
+  lessons: SCHEMA.lessons.slice(1).concat(OPTIONAL.lessons),
+  questions: SCHEMA.questions.slice(1).concat(OPTIONAL.questions),
   feedback: ['status'],
   users: ['name', 'role']
 };
-const NUMBER_FIELDS = ['course_id', 'order', 'lesson_id', 'correct_index'];
+// Ссылки на курс/урок: число (курсы, созданные в таблице) или текстовый id
+// перенесённого каталога сайта, например html-basics и html-basics.1.2
+const REF_FIELDS = ['course_id', 'lesson_id'];
+const NUMBER_FIELDS = ['order', 'correct_index', 'hours', 'minutes'];
+const REQUIRED_NUMBERS = { lessons: ['order'], questions: ['correct_index'] };
+const COURSE_ID_RE = /^(\d+|[a-z0-9][a-z0-9-]{0,59})$/;
+const LESSON_ID_RE = /^(\d+|[a-z0-9][a-z0-9.-]{0,79})$/;
+const STAGES = ['full', 'demo', 'outline'];
+const TONES = ['indigo', 'lime', 'coral', 'sky', 'violet', 'sand', 'ink'];
 const VIDEO_HOSTS = /^https:\/\/(www\.)?(youtube\.com|youtube-nocookie\.com|player\.vimeo\.com|rutube\.ru|vk\.com|vkvideo\.ru)\//;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -117,11 +132,15 @@ const ACTIONS = {
   update_profile: updateProfile,
   change_password: changePassword,
   feedback: feedback,
+  favorite: setFavorite,
+  save_note: saveNote,
+  sync_local: syncLocal,
   admin_list: p => { requireAdmin(p); return adminList(p); },
   add: p => { requireAdmin(p); return adminAdd(p); },
   update: p => { const u = requireAdmin(p); return adminUpdate(p, u); },
   delete: p => { requireAdmin(p); return adminDelete(p); },
-  admin_status: p => { requireAdmin(p); return adminStatus(); }
+  admin_status: p => { requireAdmin(p); return adminStatus(); },
+  import_catalog: p => { requireAdmin(p); return importCatalog(p); }
 };
 
 /* ======================= работа с листами ======================= */
@@ -215,6 +234,25 @@ function appendRow(t, obj) {
   return rec;
 }
 
+// Много строк одним вызовом — перенос каталога иначе шёл бы минуты
+function appendRows(t, objs) {
+  if (!objs.length) return [];
+  const keys = [];
+  objs.forEach(o => Object.keys(o).forEach(k => { if (keys.indexOf(k) === -1) keys.push(k); }));
+  ensureColumns(t, keys);
+  const arr = objs.map(o => t.headers.map(h => (Object.prototype.hasOwnProperty.call(o, h) ? safe(o[h]) : '')));
+  const start = t.sheet.getLastRow() + 1;
+  const need = start + arr.length - 1 - t.sheet.getMaxRows();
+  if (need > 0) t.sheet.insertRowsAfter(t.sheet.getMaxRows(), need + 50);
+  t.sheet.getRange(start, 1, arr.length, t.headers.length).setValues(arr);
+  return objs.map((o, i) => {
+    const rec = clean(o);
+    Object.defineProperty(rec, '__row', { value: start + i, enumerable: false, writable: true });
+    t.rows.push(rec);
+    return rec;
+  });
+}
+
 function updateRow(t, row, values) {
   ensureColumns(t, Object.keys(values));
   Object.keys(values).forEach(k => {
@@ -303,7 +341,23 @@ function publicData() {
   const lessonIds = {};
   lessons.forEach(l => { lessonIds[String(l.id)] = true; });
   const questions = table('questions').rows.filter(q => q.id !== '' && lessonIds[String(q.lesson_id)]).map(clean);
-  return { courses: courses, lessons: lessons, questions: questions, updated_at: new Date().toISOString() };
+  return { courses: courses, lessons: lessons, questions: questions, catalog: catalogInSheet(), updated_at: new Date().toISOString() };
+}
+
+// true — встроенный каталог сайта перенесён в таблицу, и сайт показывает
+// курсы только из таблицы (удалённый здесь курс пропадает и с сайта)
+function catalogInSheet() {
+  return PropertiesService.getScriptProperties().getProperty('CATALOG_IN_SHEET') === '1';
+}
+
+function hasText(v) {
+  return String(v === undefined || v === null ? '' : v).trim() !== '';
+}
+function lessonAvailable(l) {
+  return hasText(l.content) || hasText(l.video_url);
+}
+function refValue(id) {
+  return /^\d+$/.test(id) ? Number(id) : id;
 }
 
 /* ======================= пароли и сессии ======================= */
@@ -457,7 +511,13 @@ function mine(sheet, userId) {
 
 function me(p) {
   const u = auth(p);
-  return { user: publicUser(u), enrollments: mine('enrollments', u.id), progress: mine('progress', u.id) };
+  return {
+    user: publicUser(u),
+    enrollments: mine('enrollments', u.id),
+    progress: mine('progress', u.id),
+    favorites: mine('favorites', u.id).map(f => String(f.course_id)),
+    notes: mine('notes', u.id)
+  };
 }
 
 function updateProfile(p) {
@@ -494,14 +554,15 @@ function changePassword(p) {
 
 function courseId(raw) {
   const id = String(raw === undefined || raw === null ? '' : raw).trim();
-  if (/^\d+$/.test(id)) {
-    const c = findById(table('courses'), id);
-    if (!c || !isPublished(c.status)) throw new ApiError('not_found', 'Курс не найден или снят с публикации.');
-    return { id: id, sheet: true, value: Number(id) };
+  if (!COURSE_ID_RE.test(id)) throw new ApiError('bad_request', 'Некорректный курс.');
+  const row = findById(table('courses'), id);
+  if (row) {
+    if (!isPublished(row.status)) throw new ApiError('not_found', 'Курс не найден или снят с публикации.');
+    return { id: id, sheet: true, value: row.id, row: row };
   }
-  // курсы встроенного каталога сайта (data/catalog.js)
-  if (/^[a-z0-9-]{1,60}$/.test(id)) return { id: id, sheet: false, value: id };
-  throw new ApiError('bad_request', 'Некорректный курс.');
+  // курс встроенного каталога сайта (data/catalog.js), пока он не перенесён в таблицу
+  if (/^\d+$/.test(id) || catalogInSheet()) throw new ApiError('not_found', 'Курс не найден или снят с публикации.');
+  return { id: id, sheet: false, value: id, row: null };
 }
 
 function findEnrollment(t, userId, cid) {
@@ -525,8 +586,11 @@ function completeLesson(p) {
   const lid = String(p.lesson_id === undefined ? '' : p.lesson_id).trim();
   let courseLessons = null;
   if (c.sheet) {
-    courseLessons = table('lessons').rows.filter(l => String(l.course_id) === c.id).map(l => String(l.id));
-    if (courseLessons.indexOf(lid) === -1) throw new ApiError('not_found', 'Урок не найден в этом курсе.');
+    const own = table('lessons').rows.filter(l => String(l.course_id) === c.id);
+    if (!own.some(l => String(l.id) === lid)) throw new ApiError('not_found', 'Урок не найден в этом курсе.');
+    // Подтверждение — только для полного курса, когда пройдены все опубликованные уроки
+    const stage = String(c.row.stage || '').trim() || 'full';
+    courseLessons = stage === 'full' ? own.filter(lessonAvailable).map(l => String(l.id)) : [];
   } else if (!new RegExp('^' + c.id + '\\.\\d+\\.\\d+$').test(lid)) {
     throw new ApiError('bad_request', 'Некорректный урок.');
   }
@@ -543,7 +607,7 @@ function completeLesson(p) {
     const pr = table('progress', true);
     const own = pr.rows.filter(r => String(r.user_id) === String(u.id) && String(r.course_id) === c.id);
     if (!own.some(r => String(r.lesson_id) === lid)) {
-      own.push(appendRow(pr, { id: nextId(pr), user_id: u.id, course_id: c.value, lesson_id: c.sheet ? Number(lid) : lid, completed_at: now, quiz_score: score }));
+      own.push(appendRow(pr, { id: nextId(pr), user_id: u.id, course_id: c.value, lesson_id: refValue(lid), completed_at: now, quiz_score: score }));
     }
     if (c.sheet && !e.completed_at && courseLessons.length) {
       const done = {};
@@ -576,6 +640,81 @@ function feedback(p) {
   }));
 }
 
+/* ======================= избранное и заметки ======================= */
+
+function favoritesOf(userId) {
+  return mine('favorites', userId).map(f => String(f.course_id));
+}
+
+function setFavorite(p) {
+  const u = auth(p);
+  const cid = String(p.course_id === undefined ? '' : p.course_id).trim();
+  if (!COURSE_ID_RE.test(cid)) throw new ApiError('bad_request', 'Некорректный курс.');
+  const on = p.on === true || p.on === 'true' || p.on === 1;
+  return withLock(() => {
+    const t = table('favorites', true);
+    const rows = t.rows.filter(f => String(f.user_id) === String(u.id) && String(f.course_id) === cid);
+    if (on && !rows.length) {
+      if (t.rows.filter(f => String(f.user_id) === String(u.id)).length >= 200) throw new ApiError('bad_request', 'В избранном уже 200 курсов.');
+      appendRow(t, { id: nextId(t), user_id: u.id, course_id: refValue(cid), created_at: new Date().toISOString() });
+    }
+    if (!on && rows.length) deleteRows(t, rows);
+    return { favorites: favoritesOf(u.id) };
+  });
+}
+
+function noteFields(n) {
+  const cid = String(n.course_id === undefined ? '' : n.course_id).trim();
+  const lid = String(n.lesson_id === undefined ? '' : n.lesson_id).trim();
+  if (!COURSE_ID_RE.test(cid) || !LESSON_ID_RE.test(lid)) throw new ApiError('bad_request', 'Некорректный урок.');
+  return {
+    course_id: refValue(cid), lesson_id: refValue(lid),
+    course_title: text(n.course_title, 200), lesson_title: text(n.lesson_title, 200),
+    text: String(n.text === undefined || n.text === null ? '' : n.text).slice(0, 5000),
+    updated_at: n.updated_at && !isNaN(new Date(n.updated_at)) ? new Date(n.updated_at).toISOString() : new Date().toISOString()
+  };
+}
+
+// Пишет одну заметку; пустой текст — удалить. Вызывать внутри withLock.
+function writeNote(t, userId, f) {
+  const rows = t.rows.filter(r => String(r.user_id) === String(userId) && String(r.lesson_id) === String(f.lesson_id));
+  if (!f.text.trim()) { if (rows.length) deleteRows(t, rows); return null; }
+  if (rows.length) return updateRow(t, rows[0], f);
+  return appendRow(t, Object.assign({ id: nextId(t), user_id: userId }, f));
+}
+
+function saveNote(p) {
+  const u = auth(p);
+  const f = noteFields(Object.assign({}, p, { updated_at: '' }));
+  return withLock(() => {
+    const t = table('notes', true);
+    writeNote(t, u.id, f);
+    return { updated_at: f.updated_at };
+  });
+}
+
+// Однократная выгрузка заметок и избранного, которые раньше хранились
+// только в браузере. Серверные данные не затираются: из двух версий
+// заметки остаётся более новая.
+function syncLocal(p) {
+  const u = auth(p);
+  const favs = (Array.isArray(p.favorites) ? p.favorites : []).slice(0, 200).map(x => String(x).trim()).filter(x => COURSE_ID_RE.test(x));
+  const notes = (Array.isArray(p.notes) ? p.notes : []).slice(0, 500).map(noteFields).filter(n => n.text.trim());
+  return withLock(() => {
+    const ft = table('favorites', true);
+    const have = {};
+    ft.rows.filter(f => String(f.user_id) === String(u.id)).forEach(f => { have[String(f.course_id)] = true; });
+    const now = new Date().toISOString();
+    appendRows(ft, favs.filter((x, i) => !have[x] && favs.indexOf(x) === i).map((x, i) => ({ id: nextId(ft) + i, user_id: u.id, course_id: refValue(x), created_at: now })));
+    const nt = table('notes', true);
+    notes.forEach(n => {
+      const cur = nt.rows.find(r => String(r.user_id) === String(u.id) && String(r.lesson_id) === String(n.lesson_id));
+      if (!cur || new Date(cur.updated_at).getTime() < new Date(n.updated_at).getTime()) writeNote(nt, u.id, n);
+    });
+    return { favorites: favoritesOf(u.id), notes: mine('notes', u.id) };
+  });
+}
+
 /* ======================= администрирование ======================= */
 
 function adminList(p) {
@@ -592,9 +731,17 @@ function pick(sheet, src) {
   (EDITABLE[sheet] || []).forEach(k => {
     if (!src || !Object.prototype.hasOwnProperty.call(src, k)) return;
     let v = src[k];
-    if (NUMBER_FIELDS.indexOf(k) !== -1) {
-      v = Number(v);
-      if (v === '' || !isFinite(v)) throw new ApiError('bad_request', 'Поле ' + k + ' должно быть числом.');
+    if (REF_FIELDS.indexOf(k) !== -1) {
+      v = String(v === null || v === undefined ? '' : v).trim();
+      if (!(k === 'course_id' ? COURSE_ID_RE : LESSON_ID_RE).test(v)) throw new ApiError('bad_request', 'Поле ' + k + ': укажите id ' + (k === 'course_id' ? 'курса' : 'урока') + '.');
+      v = refValue(v);
+    } else if (NUMBER_FIELDS.indexOf(k) !== -1) {
+      const empty = v === '' || v === null || v === undefined;
+      if (empty && (REQUIRED_NUMBERS[sheet] || []).indexOf(k) === -1) v = '';
+      else {
+        v = Number(v);
+        if (empty || !isFinite(v)) throw new ApiError('bad_request', 'Поле ' + k + ' должно быть числом.');
+      }
     } else {
       v = String(v === null || v === undefined ? '' : v).slice(0, MAX_CELL);
     }
@@ -606,6 +753,9 @@ function pick(sheet, src) {
   if (out.type !== undefined && ['text', 'video'].indexOf(out.type) === -1) throw new ApiError('bad_request', 'Тип урока: text или video.');
   if (out.video_url && !VIDEO_HOSTS.test(out.video_url)) throw new ApiError('bad_request', 'Видео: используйте ссылку для встраивания YouTube, Vimeo, Rutube или VK Видео.');
   if (out.image_url && !/^https:\/\//.test(out.image_url)) throw new ApiError('bad_request', 'Обложка: нужна ссылка, начинающаяся с https://');
+  if (out.stage && STAGES.indexOf(out.stage) === -1) throw new ApiError('bad_request', 'Стадия курса: full, demo или outline.');
+  if (out.access && ['open', 'enroll'].indexOf(out.access) === -1) throw new ApiError('bad_request', 'Доступ: open или enroll.');
+  if (out.tone && TONES.indexOf(out.tone) === -1) throw new ApiError('bad_request', 'Цвет обложки: ' + TONES.join(', ') + '.');
   if (out.correct_index !== undefined && (out.correct_index < 0 || Math.floor(out.correct_index) !== out.correct_index)) throw new ApiError('bad_request', 'Некорректный номер верного варианта.');
   return out;
 }
@@ -660,7 +810,35 @@ function adminStatus() {
       missingColumns: t.sheet ? SCHEMA[n].filter(c => t.headers.indexOf(c) === -1) : []
     };
   });
-  return { spreadsheet: spreadsheet().getName(), sheets: sheets };
+  return { spreadsheet: spreadsheet().getName(), sheets: sheets, catalog_in_sheet: catalogInSheet() };
+}
+
+// Перенос встроенного каталога сайта в таблицу (кнопка в админ-панели → «Обзор»).
+// Курсы, которые уже есть в таблице (тот же id), не трогаются — ваши правки не затираются.
+function importCatalog(p) {
+  const src = p.data || {};
+  const list = k => (Array.isArray(src[k]) ? src[k] : []);
+  if (!list('courses').length) throw new ApiError('bad_request', 'Нет курсов для переноса.');
+  if (list('courses').length > 300 || list('lessons').length > 6000 || list('questions').length > 20000) throw new ApiError('bad_request', 'Слишком много данных за один раз.');
+  return withLock(() => {
+    const ct = table('courses', true), lt = table('lessons', true), qt = table('questions', true);
+    const haveCourse = {}, haveLesson = {};
+    ct.rows.forEach(r => { haveCourse[String(r.id)] = true; });
+    lt.rows.forEach(r => { haveLesson[String(r.id)] = true; });
+    const courses = list('courses').filter(c => COURSE_ID_RE.test(String(c.id)) && !/^\d+$/.test(String(c.id)) && !haveCourse[String(c.id)]);
+    const ids = {};
+    courses.forEach(c => { ids[String(c.id)] = true; });
+    const lessons = list('lessons').filter(l => ids[String(l.course_id)] && LESSON_ID_RE.test(String(l.id)) && !haveLesson[String(l.id)]);
+    const lids = {};
+    lessons.forEach(l => { lids[String(l.id)] = true; });
+    const questions = list('questions').filter(q => lids[String(q.lesson_id)]);
+    let qid = nextId(qt);
+    appendRows(ct, courses.map(c => Object.assign({ id: String(c.id) }, pick('courses', c))));
+    appendRows(lt, lessons.map(l => Object.assign({ id: String(l.id) }, pick('lessons', l))));
+    appendRows(qt, questions.map(q => Object.assign({ id: qid++ }, pick('questions', q))));
+    PropertiesService.getScriptProperties().setProperty('CATALOG_IN_SHEET', '1');
+    return { courses: courses.length, lessons: lessons.length, questions: questions.length, skipped: list('courses').length - courses.length };
+  });
 }
 
 /* ======================= для запуска из редактора ======================= */

@@ -24,6 +24,9 @@
   const TOKEN_KEY = 'stroka_token';
   const USER_KEY = 'current_user'; // тот же ключ, что и раньше
   const PUBLIC_SHEETS = ['courses', 'lessons', 'questions'];
+  // Последний известный ответ сервера: перенесён ли встроенный каталог в таблицу.
+  // Нужен, чтобы при первой отрисовке не мелькали устаревшие курсы из файлов.
+  const CATALOG_FLAG_KEY = 'stroka:catalog-in-sheet';
 
   class ApiError extends Error {
     constructor(code, message) {
@@ -256,8 +259,9 @@
   }
 
   /* ---------------- публичное API ---------------- */
+  // sheet — courses | lessons | questions, или meta: { catalog } — служебные сведения
   async function getPublic(sheet, { fresh = false } = {}) {
-    if (!PUBLIC_SHEETS.includes(sheet)) throw new ApiError('forbidden', 'Недоступно.');
+    if (!PUBLIC_SHEETS.includes(sheet) && sheet !== 'meta') throw new ApiError('forbidden', 'Недоступно.');
     const key = 'public:' + sheet;
     const hit = cacheRead(key);
     if (!fresh && hit && Date.now() - hit.t < PUBLIC_TTL_MS) return hit.data;
@@ -268,8 +272,11 @@
         const bundle = await once('public:bundle', () => http('GET', { params: { action: 'public' }, retries: 1 }));
         if (!bundle || !PUBLIC_SHEETS.every(s => Array.isArray(bundle[s]))) throw new ApiError('bad_response', MESSAGES.bad_response);
         PUBLIC_SHEETS.forEach(s => cacheWrite('public:' + s, bundle[s]));
-        return bundle[sheet];
+        cacheWrite('public:meta', { catalog: !!bundle.catalog });
+        if (bundle.catalog) store.set(CATALOG_FLAG_KEY, '1'); else store.del(CATALOG_FLAG_KEY);
+        return sheet === 'meta' ? { catalog: !!bundle.catalog } : bundle[sheet];
       }
+      if (sheet === 'meta') return { catalog: false };
       return await once(key, async () => {
         let rows = mode === 'local' ? await local.getAll(sheet) : await http('GET', { params: { action: 'list', sheet }, retries: 1 });
         if (!Array.isArray(rows)) throw new ApiError('bad_response', MESSAGES.bad_response);
@@ -282,6 +289,91 @@
       if (hit) { hit.stale = true; return hit.data; }
       throw err;
     }
+  }
+
+  // Копия из кеша без запроса (может быть устаревшей) — для мгновенной отрисовки
+  function peekPublic(sheet) {
+    const hit = cacheRead('public:' + sheet);
+    return hit ? hit.data : null;
+  }
+  const catalogInSheet = () => cfg.dataMode !== 'local' && store.get(CATALOG_FLAG_KEY) === '1';
+
+  /* ---------------- избранное и заметки ---------------- */
+  // Хранятся в аккаунте (листы favorites и notes), а в браузере — их копия,
+  // чтобы страницы показывали их мгновенно. Без входа и со старым скриптом —
+  // только в браузере, как раньше.
+  const favKey = uid => 'stroka:fav:' + uid;
+  const notePrefix = uid => 'stroka:note:' + uid + ':';
+  const syncedKey = uid => 'stroka:synced:' + uid;
+  const parse = (raw, fallback) => { try { return raw ? JSON.parse(raw) : fallback; } catch (e) { return fallback; } };
+
+  function localNotes(uid) {
+    const out = [];
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith(notePrefix(uid))) { const v = parse(store.get(k), null); if (v && v.text) out.push(v); }
+      }
+    } catch (e) { /* хранилище недоступно */ }
+    return out;
+  }
+  function writeLocalCopy(uid, favorites, notes) {
+    store.set(favKey(uid), JSON.stringify(favorites.map(String)));
+    try {
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith(notePrefix(uid))) localStorage.removeItem(k);
+      }
+    } catch (e) { /* ignore */ }
+    notes.forEach(n => store.set(notePrefix(uid) + n.lesson_id, JSON.stringify({
+      text: String(n.text || ''), lesson: n.lesson_title || '', course: n.course_title || '',
+      courseId: String(n.course_id), lessonId: String(n.lesson_id), updated: n.updated_at || ''
+    })));
+    window.dispatchEvent(new CustomEvent('stroka:favorites-updated'));
+  }
+  // При первом входе с этого браузера отправляем на сервер то, что раньше хранилось только здесь
+  async function syncAccountData(user, res) {
+    let favorites = res.favorites || [], notes = res.notes || [];
+    if (!store.get(syncedKey(user.id))) {
+      // и то, что сделано на этом устройстве до входа (как гость)
+      const localFav = [...new Set(parse(store.get(favKey(user.id)), []).concat(parse(store.get(favKey('guest')), [])).map(String))];
+      const local = localNotes(user.id).concat(localNotes('guest'));
+      const newFav = localFav.filter(id => !favorites.includes(id));
+      const newNotes = local.filter(n => !notes.some(x => String(x.lesson_id) === String(n.lessonId) && String(x.text) === String(n.text)));
+      if (newFav.length || newNotes.length) {
+        const merged = await v2('sync_local', {
+          favorites: localFav,
+          notes: newNotes.map(n => ({ course_id: n.courseId, lesson_id: n.lessonId, course_title: n.course, lesson_title: n.lesson, text: n.text, updated_at: n.updated }))
+        }, { auth: true });
+        favorites = merged.favorites; notes = merged.notes;
+      }
+      store.set(syncedKey(user.id), '1');
+      writeLocalCopy('guest', [], []); // гостевые данные теперь в аккаунте
+    }
+    writeLocalCopy(user.id, favorites, notes);
+    return { favorites, notes };
+  }
+
+  // true — избранное и заметки этого пользователя хранятся в аккаунте
+  const accountSync = () => !!currentUser() && !!token() && cfg.dataMode !== 'local';
+
+  async function setFavorite(courseId, on) {
+    if (!accountSync()) return null;
+    const res = await v2('favorite', { course_id: String(courseId), on: !!on }, { auth: true });
+    if (myCache) myCache.favorites = res.favorites;
+    return res.favorites;
+  }
+  function noteBody(n) {
+    return { course_id: String(n.courseId), lesson_id: String(n.lessonId), course_title: n.course || '', lesson_title: n.lesson || '', text: n.text || '' };
+  }
+  async function saveNote(note) {
+    if (!accountSync()) return null;
+    return v2('save_note', noteBody(note), { auth: true });
+  }
+  // Сохранение при закрытии вкладки: обычный запрос браузер может оборвать
+  function beaconNote(note) {
+    if (!accountSync() || !navigator.sendBeacon || !API_URL) return false;
+    try { return navigator.sendBeacon(API_URL, JSON.stringify(Object.assign({ action: 'save_note', token: token() }, noteBody(note)))); } catch (e) { return false; }
   }
 
   async function register(name, email, password) {
@@ -322,6 +414,10 @@
 
   async function logout() {
     const tok = token();
+    const user = currentUser();
+    // Копия избранного и заметок есть в аккаунте — с этого устройства её убираем
+    if (tok && user) writeLocalCopy(user.id, [], []);
+    if (tok && user) store.del(syncedKey(user.id));
     clearSession();
     if (tok) { try { await v2('logout', { token: tok }); } catch (e) { /* сессия всё равно удалена локально */ } }
   }
@@ -340,6 +436,8 @@
         const res = await v2('me', {}, { auth: true, retries: 1 });
         if (res.user) saveSession(res.user, token());
         result = { enrollments: res.enrollments || [], progress: res.progress || [] };
+        try { Object.assign(result, await syncAccountData(res.user || user, res)); }
+        catch (e) { result.favorites = res.favorites || []; result.notes = res.notes || []; }
       } else {
         const a = await rawAdapter();
         const [en, pr] = await Promise.all([a.getAll('enrollments'), a.getAll('progress')]);
@@ -464,6 +562,15 @@
       cacheClear('public:'); // чтобы сайт сразу показал изменения
       return res;
     },
+    // Перенос встроенного каталога в таблицу (только скрипт v2)
+    async importCatalog(data) {
+      const mode = await detectMode();
+      if (mode !== 'v2') throw new ApiError('unsupported', 'Перенос каталога доступен после установки скрипта v2 (apps-script/Code.gs).');
+      const res = await v2('import_catalog', { data }, { auth: true });
+      cacheClear('public:');
+      store.set(CATALOG_FLAG_KEY, '1');
+      return res;
+    },
     async status() {
       const started = performance.now();
       const mode = await detectMode();
@@ -479,6 +586,12 @@
     ApiError,
     mode: detectMode,
     getPublic,
+    peekPublic,
+    catalogInSheet,
+    accountSync,
+    setFavorite,
+    saveNote,
+    beaconNote,
     currentUser,
     hasToken: () => !!token(),
     register,

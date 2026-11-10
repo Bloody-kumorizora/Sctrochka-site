@@ -9,17 +9,18 @@
   const SHEETS = {
     courses: {
       title: 'Курсы',
-      fields: ['title', 'description', 'category', 'level', 'duration', 'instructor', 'status', 'image_url', 'subtitle', 'format', 'tags', 'audience', 'requirements', 'outcomes'],
-      columns: ['title', 'category', 'level', 'status']
+      fields: ['title', 'description', 'category', 'level', 'duration', 'instructor', 'status', 'stage', 'access', 'image_url', 'subtitle', 'format', 'hours', 'order', 'featured',
+        'tags', 'next', 'audience', 'requirements', 'outcomes', 'projects', 'glyph', 'tone'],
+      columns: ['title', 'category', 'level', 'status', 'stage']
     },
     lessons: {
       title: 'Уроки',
-      fields: ['course_id', 'module', 'order', 'title', 'type', 'content', 'video_url'],
+      fields: ['course_id', 'module', 'module_summary', 'order', 'title', 'summary', 'minutes', 'type', 'content', 'tasks', 'video_url'],
       columns: ['order', 'module', 'title', 'type']
     },
     questions: {
       title: 'Вопросы тестов',
-      fields: ['lesson_id', 'question', 'options', 'correct_index'],
+      fields: ['lesson_id', 'question', 'options', 'correct_index', 'explain'],
       columns: ['lesson_id', 'question', 'correct_index']
     }
   };
@@ -29,10 +30,17 @@
     format: 'Формат', tags: 'Теги через запятую', audience: 'Для кого (каждый пункт с новой строки)', requirements: 'Требования (с новой строки)',
     outcomes: 'Результаты (с новой строки)', course_id: 'Курс', module: 'Модуль', order: 'Порядковый номер', type: 'Тип',
     content: 'Текст урока (поддерживается Markdown: ## заголовки, списки, ```код```)', video_url: 'Видео (ссылка для встраивания)',
-    lesson_id: 'Урок', question: 'Вопрос', options: 'Варианты ответа (каждый с новой строки)', correct_index: 'Верный вариант'
+    lesson_id: 'Урок', question: 'Вопрос', options: 'Варианты ответа (каждый с новой строки)', correct_index: 'Верный вариант',
+    stage: 'Готовность курса', access: 'Доступ к урокам', hours: 'Часов занятий (необязательно)', featured: 'Показывать на главной',
+    next: 'Следующие курсы (id через запятую)', projects: 'Проекты: по одному в строке — «Название | Описание | HTML, CSS»',
+    glyph: 'Значок на обложке (2–3 символа)', tone: 'Цвет обложки', module_summary: 'Описание модуля (достаточно у первого урока модуля)',
+    summary: 'Кратко об уроке', minutes: 'Минут на урок', tasks: 'Практические задания (каждое с новой строки)', explain: 'Пояснение к верному ответу'
   };
-  const NUMBER_FIELDS = ['course_id', 'order', 'lesson_id', 'correct_index'];
-  const LONG = ['description', 'content', 'audience', 'requirements', 'outcomes', 'options'];
+  // course_id / lesson_id — ссылки: число (курс из таблицы) или текстовый id (html-basics)
+  const REF_FIELDS = ['course_id', 'lesson_id'];
+  const NUMBER_FIELDS = ['order', 'correct_index', 'hours', 'minutes'];
+  const OPTIONAL_NUMBERS = { courses: ['order', 'hours'], lessons: ['minutes'], questions: [] };
+  const LONG = ['description', 'content', 'audience', 'requirements', 'outcomes', 'options', 'projects', 'tasks'];
   const REQUIRED = { courses: ['title', 'description', 'category', 'level', 'status'], lessons: ['course_id', 'title', 'order'], questions: ['lesson_id', 'question', 'options'] };
 
   let mode = 'legacy';
@@ -55,6 +63,10 @@
     if (f === 'options') v = String(v).split('|').join('\n');
     const id = 'f-' + f;
     const label = '<label for="' + id + '">' + LABELS[f] + (REQUIRED[sheet].includes(f) ? ' *' : '') + '</label>';
+    if (f === 'stage') return '<div class="field">' + label + '<select id="' + id + '">' + Object.entries(Courses.STATUS).map(([k, s]) => '<option value="' + k + '"' + ((v || 'full') === k ? ' selected' : '') + '>' + s.label + ' — ' + escapeHtml(s.hint.toLowerCase()) + '</option>').join('') + '</select></div>';
+    if (f === 'access') return '<div class="field">' + label + '<select id="' + id + '"><option value="enroll"' + (v !== 'open' ? ' selected' : '') + '>После входа и записи на курс</option><option value="open"' + (v === 'open' ? ' selected' : '') + '>Открыты всем, без регистрации</option></select></div>';
+    if (f === 'featured') return '<div class="field">' + label + '<select id="' + id + '"><option value=""' + (!v ? ' selected' : '') + '>Нет</option><option value="да"' + (v ? ' selected' : '') + '>Да</option></select></div>';
+    if (f === 'tone') return '<div class="field">' + label + '<select id="' + id + '"><option value="">Автоматически</option>' + Courses.TONES.map(t => '<option' + (t === v ? ' selected' : '') + '>' + t + '</option>').join('') + '</select></div>';
     if (f === 'status') return '<div class="field">' + label + '<select id="' + id + '"><option value="draft"' + (v === 'draft' || !v ? ' selected' : '') + '>Черновик (не виден на сайте)</option><option value="published"' + (v === 'published' ? ' selected' : '') + '>Опубликован</option></select></div>';
     if (f === 'level') return '<div class="field">' + label + '<select id="' + id + '">' + Courses.LEVELS.map(l => '<option' + (l === v ? ' selected' : '') + '>' + l + '</option>').join('') + '</select></div>';
     if (f === 'type') return '<div class="field">' + label + '<select id="' + id + '"><option value="text"' + (v !== 'video' ? ' selected' : '') + '>Текст</option><option value="video"' + (v === 'video' ? ' selected' : '') + '>Видео</option></select></div>';
@@ -66,15 +78,15 @@
       return '<div class="field">' + label + '<input id="' + id + '" type="number" min="1" value="' + (v === '' ? 1 : Number(v) + 1) + '"><span class="hint">Номер верного варианта, начиная с 1' + (opts.length > 1 ? ' (сейчас вариантов: ' + opts.length + ')' : '') + '</span></div>';
     }
     if (LONG.includes(f)) return '<div class="field">' + label + '<textarea id="' + id + '" rows="' + (f === 'content' ? 14 : 4) + '">' + escapeHtml(v) + '</textarea></div>';
-    return '<div class="field">' + label + '<input id="' + id + '" value="' + escapeHtml(v) + '"' + (NUMBER_FIELDS.includes(f) ? ' type="number"' : '') + '></div>';
+    return '<div class="field">' + label + '<input id="' + id + '" value="' + escapeHtml(v) + '"' + (NUMBER_FIELDS.includes(f) ? ' type="number"' : '') + (f === 'glyph' ? ' maxlength="4"' : '') + '></div>';
   }
 
   function formHtml(sheet) {
     const cfg = SHEETS[sheet];
     const row = editing && editing.id ? (data[sheet].find(r => String(r.id) === String(editing.id)) || {}) : {};
     // Прежний скрипт может не уметь добавлять столбцы — в этом режиме только исходные поля таблицы
-    const extra = ['subtitle', 'format', 'tags', 'audience', 'requirements', 'outcomes'];
-    const fields = cfg.fields.filter(f => mode !== 'legacy' || sheet !== 'courses' || !extra.includes(f));
+    const base = { courses: ['title', 'description', 'category', 'level', 'duration', 'instructor', 'status', 'image_url'], lessons: ['course_id', 'module', 'order', 'title', 'type', 'content', 'video_url'], questions: ['lesson_id', 'question', 'options', 'correct_index'] };
+    const fields = cfg.fields.filter(f => mode !== 'legacy' || base[sheet].includes(f));
     return '<form class="panel" id="row-form" novalidate><span class="eyebrow"><b>' + (editing && editing.id ? '#' + escapeHtml(editing.id) : '+') + '</b> ' + (editing && editing.id ? 'Редактирование' : 'Новая запись') + '</span>' +
       '<h2>' + cfg.title + '</h2>' + fields.map(f => fieldHtml(sheet, f, row)).join('') +
       '<div class="hero-actions"><button class="btn" type="submit" id="save">Сохранить</button>' + (editing && editing.id ? '<button class="btn btn-ghost" type="button" id="cancel">Отмена</button>' : '') + '</div></form>';
@@ -88,7 +100,9 @@
       let v = el.value.trim();
       if (f === 'options') v = v.split('\n').map(x => x.trim()).filter(Boolean).join('|');
       if (f === 'correct_index') v = String(Number(v) - 1);
-      if (NUMBER_FIELDS.includes(f)) {
+      if (REF_FIELDS.includes(f)) out[f] = /^\d+$/.test(v) ? Number(v) : v;
+      else if (NUMBER_FIELDS.includes(f)) {
+        if (v === '' && OPTIONAL_NUMBERS[sheet].includes(f)) { out[f] = ''; continue; }
         if (v === '' || !isFinite(Number(v))) throw new Error('Поле «' + LABELS[f] + '» должно быть числом.');
         out[f] = Number(v);
       } else out[f] = v;
@@ -144,14 +158,42 @@
     let html = '<div class="status-grid">' +
       '<div class="status-item"><strong><span class="' + modeText[0] + '"></span>' + modeText[1] + '</strong><span>' + modeText[2] + '</span></div>' +
       '<div class="status-item"><strong>' + st.latency + ' мс</strong><span>время ответа API</span></div>' +
-      '<div class="status-item"><strong>' + (window.STROKA_STATS ? window.STROKA_STATS.courses : '—') + '</strong><span>курсов во встроенном каталоге (файлы сайта)</span></div>' +
+      '<div class="status-item"><strong>' + (window.STROKA_STATS ? window.STROKA_STATS.courses : '—') + '</strong><span>курсов в файлах сайта' + (st.catalog_in_sheet ? ' (запасная копия)' : '') + '</span></div>' +
       '</div>';
+    if (st.mode === 'v2') html += catalogHtml(st);
     if (st.sheets) {
       html += '<h2 style="font-size:1.3rem;margin:32px 0 14px">Листы таблицы «' + escapeHtml(st.spreadsheet) + '»</h2><div class="table-wrap"><table><thead><tr><th>Лист</th><th>Строк</th><th>Состояние</th></tr></thead><tbody>' +
         Object.entries(st.sheets).map(([name, s]) => '<tr><td>' + name + '</td><td>' + (s.exists ? s.rows : '—') + '</td><td>' +
           (!s.exists ? '<span class="dot-warn"></span>будет создан при первой записи' : s.missingColumns.length ? '<span class="dot-warn"></span>нет столбцов: ' + escapeHtml(s.missingColumns.join(', ')) : '<span class="dot-ok"></span>в порядке') + '</td></tr>').join('') + '</tbody></table></div>';
     }
     return html;
+  }
+
+  // Перенос встроенного каталога (файлы data/) в таблицу
+  function catalogHtml(st) {
+    const n = window.STROKA_STATS ? window.STROKA_STATS.courses : 0;
+    if (st.catalog_in_sheet) {
+      return '<div class="msg msg-ok" style="margin-top:28px">' + icon('check') + '<p><strong>Каталог хранится в таблице.</strong> Сайт показывает курсы только из таблицы: правки, новые и удалённые курсы видны сразу. Файлы <code>data/</code> — запасная копия на случай, если таблица недоступна.</p></div>';
+    }
+    return '<div class="panel" style="margin-top:28px"><span class="eyebrow"><b>⇄</b> Встроенный каталог</span><h2 style="font-size:1.3rem">Перенести ' + n + ' ' + UI.plural(n, 'курс', 'курса', 'курсов') + ' из файлов сайта в таблицу</h2>' +
+      '<p class="muted">Сейчас эти курсы хранятся в файлах <code>data/</code> и в таблице их не видно. После переноса курсы, уроки и вопросы появятся в листах courses, lessons и questions — их можно будет править прямо в таблице или здесь, и сайт будет брать их только оттуда. ' +
+      'Ссылки на курсы, прогресс учеников и избранное сохранятся. Курсы, которые уже есть в таблице, не перезаписываются.</p>' +
+      '<button class="btn" type="button" id="import-catalog">Перенести каталог в таблицу</button></div>';
+  }
+  function bindOverview() {
+    const btn = $('#import-catalog');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+      if (!confirm('Перенести встроенный каталог в Google Таблицу? Это займёт до минуты.')) return;
+      UI.withBusy(btn, async () => {
+        try {
+          const rows = await Courses.builtinRows();
+          const res = await DB.admin.importCatalog(rows);
+          UI.toast('Перенесено: курсов — ' + res.courses + ', уроков — ' + res.lessons + ', вопросов — ' + res.questions + (res.skipped ? '. Уже были в таблице: ' + res.skipped : ''), 'success', 8000);
+          await render();
+        } catch (e) { UI.toast('Не удалось перенести: ' + UI.errorText(e), 'error', 8000); }
+      });
+    });
   }
 
   function feedbackHtml(rows) {
@@ -192,7 +234,7 @@
     $('#reload').addEventListener('click', async () => { DB.clearCache('public:'); await render(); UI.toast('Данные обновлены', 'success'); });
     const body = $('#admin-body');
     try {
-      if (tab === 'overview') body.innerHTML = await overview();
+      if (tab === 'overview') { body.innerHTML = await overview(); bindOverview(); }
       else if (SHEETS[tab]) {
         await Promise.all(['courses', 'lessons'].concat(tab === 'questions' ? ['questions'] : []).map(load));
         if (!editing) { editing = { sheet: tab, id: null }; requestId = DB.requestId(); }

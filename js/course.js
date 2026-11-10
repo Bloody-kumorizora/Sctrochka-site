@@ -19,12 +19,12 @@
     if (p && p.enrolled) {
       body += '<div><span class="eyebrow"><b>%</b> Ваш прогресс</span><div class="big-progress"><strong>' + p.percent + '%</strong><span class="muted">' + p.done + ' из ' + p.total + ' ' + (course.status === 'demo' ? 'открытых ' : '') + UI.plural(p.total, 'урока', 'уроков', 'уроков') + '</span></div>' +
         '<div class="progress-mini"><span class="bar"><i style="width:' + p.percent + '%"></i></span></div></div>';
-      if (p.completed && course.source === 'sheet') {
+      if (p.completed && course.status === 'full') {
         body += '<a class="btn btn-lg" href="certificate.html?course=' + encodeURIComponent(course.id) + '">Подтверждение прохождения ' + icon('arrow') + '</a>';
       } else if (p.nextLesson) {
         body += '<a class="btn btn-lg" href="' + Courses.lessonUrl(p.nextLesson) + '">' + (p.done ? 'Продолжить обучение' : 'Начать обучение') + ' ' + icon('arrow') + '</a>';
       }
-    } else if (course.source === 'sheet') {
+    } else if (course.access === 'enroll') {
       body += '<p class="action-note">После записи уроки и прогресс будут доступны в личном кабинете.</p>';
       body += user
         ? '<button class="btn btn-lg" type="button" id="enroll">Записаться на курс ' + icon('arrow') + '</button>'
@@ -59,7 +59,7 @@
       const open = m.lessons.filter(l => l.available).length;
       return '<details class="module"' + (i === 0 ? ' open' : '') + '><summary><span class="module-no">' + String(i + 1).padStart(2, '0') + '</span>' +
         '<span class="module-title">' + escapeHtml(m.title) + (m.summary ? '<small>' + escapeHtml(m.summary) + '</small>' : '') + '</span>' +
-        '<span class="module-meta">' + m.lessons.length + ' ' + UI.plural(m.lessons.length, 'урок', 'урока', 'уроков') + (course.source === 'builtin' && open ? ' · открыто ' + open : '') + '</span></summary>' +
+        '<span class="module-meta">' + m.lessons.length + ' ' + UI.plural(m.lessons.length, 'урок', 'урока', 'уроков') + (open && open < m.lessons.length ? ' · открыто ' + open : '') + '</span></summary>' +
         '<ol class="lesson-list">' + m.lessons.map(l => lessonRow(l, p)).join('') + '</ol></details>';
     }).join('') + '</div>';
   }
@@ -77,7 +77,7 @@
     const facts = [
       ['Уровень', course.level],
       ['Длительность', Courses.durationText(course) || '—'],
-      ['Уроков', course.lessons.length + (course.source === 'builtin' ? ' (открыто ' + course.availableLessons.length + ')' : '')],
+      ['Уроков', course.lessons.length + (course.availableLessons.length < course.lessons.length ? ' (открыто ' + course.availableLessons.length + ')' : '')],
       ['Формат', course.format]
     ];
     let html =
@@ -109,7 +109,7 @@
     }
 
     html += '<section class="section-tight" id="program"><div class="container"><div class="section-head"><div><span class="eyebrow"><b>02</b> Программа</span><h2>' + course.modules.length + ' ' + UI.plural(course.modules.length, 'модуль', 'модуля', 'модулей') + ', ' + course.lessons.length + ' ' + UI.plural(course.lessons.length, 'урок', 'урока', 'уроков') + '</h2></div>' +
-      '<p>' + (course.source === 'builtin' ? 'Уроки с отметкой ' + '«в разработке» ещё готовятся: их программа опубликована, чтобы вы видели весь путь заранее.' : 'Модули раскрываются по клику. Пройденные уроки отмечаются галочкой.') + '</p></div>' + program(p) + '</div></section>';
+      '<p>' + (course.availableLessons.length < course.lessons.length ? 'Уроки с отметкой ' + '«в разработке» ещё готовятся: их программа опубликована, чтобы вы видели весь путь заранее.' : 'Модули раскрываются по клику. Пройденные уроки отмечаются галочкой.') + '</p></div>' + program(p) + '</div></section>';
 
     html += practice();
 

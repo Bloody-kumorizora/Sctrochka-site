@@ -437,14 +437,24 @@
       btn.addEventListener('click', e => {
         e.preventDefault();
         e.stopPropagation();
-        const on = favorites.toggle(btn.dataset.fav);
-        $$('[data-fav="' + btn.dataset.fav + '"]').forEach(b => b.dispatchEvent(new Event('fav-sync')));
+        const id = btn.dataset.fav;
+        const on = favorites.toggle(id);
+        $$('[data-fav="' + id + '"]').forEach(b => b.dispatchEvent(new Event('fav-sync')));
         sync();
         toast(on ? 'Курс добавлен в избранное' : 'Курс убран из избранного', 'success', 2200);
+        // Вошедшим — сохраняем в аккаунте, чтобы избранное было на всех устройствах
+        if (window.DB && DB.accountSync()) {
+          DB.setFavorite(id, on).catch(err => toast('Избранное сохранено только в этом браузере: ' + errorText(err), 'error', 6000));
+        }
       });
       btn.addEventListener('fav-sync', sync);
     });
   }
+
+  // Избранное пришло с сервера (вход с другого устройства и т. п.) — обновляем кнопки
+  window.addEventListener('stroka:favorites-updated', () => {
+    $$('[data-fav]').forEach(b => b.dispatchEvent(new Event('fav-sync')));
+  });
 
   window.addEventListener('stroka:session-expired', () => {
     toast('Сессия истекла. Войдите снова, чтобы сохранять прогресс.', 'error', 6000);

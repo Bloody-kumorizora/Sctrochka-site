@@ -32,10 +32,9 @@
   let showTrack = () => {};
   const byId = id => courses.find(c => c.id === id);
 
-  function renderStats(sheetLessons) {
-    const s = window.STROKA_STATS || { courses: 0, lessons: 0, demo: 0 };
-    const sheetCourses = courses.filter(c => c.source === 'sheet').length;
-    const values = { courses: s.courses + sheetCourses, lessons: s.lessons + sheetLessons, demo: s.demo + sheetLessons };
+  function renderStats() {
+    const sum = key => courses.reduce((n, c) => n + (Number(c[key]) || 0), 0);
+    const values = { courses: courses.length, lessons: sum('lessonsCount'), demo: sum('demoLessons') };
     $$('[data-stat]').forEach(el => { el.textContent = values[el.dataset.stat]; });
   }
 
@@ -57,7 +56,7 @@
     const tracks = TRACKS.map(([name, text]) => ({ name, text, list: courses.filter(c => c.track === name).sort((a, b) => a.order - b.order) }))
       .filter(t => t.list.length);
     // Направления из таблицы (например «Программирование»), которых нет в списке выше
-    courses.filter(c => c.source === 'sheet' && !TRACKS.some(t => t[0] === c.track)).forEach(c => {
+    courses.filter(c => !TRACKS.some(t => t[0] === c.track)).forEach(c => {
       let t = tracks.find(x => x.name === c.track);
       if (!t) { t = { name: c.track, text: 'Курсы автора из этого направления.', list: [] }; tracks.push(t); }
       t.list.push(c);
@@ -151,17 +150,12 @@
     $('#starter-form').addEventListener('change', renderRoute);
     // Сначала встроенный каталог (мгновенно), затем добавляем курсы из таблицы
     courses = await Courses.builtin();
-    renderStats(0);
-    renderFeatured();
-    renderTracks();
-    renderRoute();
+    const paint = () => { renderStats(); renderFeatured(); renderTracks(); renderRoute(); };
+    if (courses.length) paint();
     try {
       const res = await Courses.all();
-      if (res.courses.some(c => c.source === 'sheet')) {
-        courses = res.courses;
-        renderStats(courses.filter(c => c.source === 'sheet').reduce((s, c) => s + c.lessonsCount, 0));
-        renderTracks();
-      }
+      courses = res.courses;
+      paint();
     } catch (e) { /* главная работает и без таблицы */ }
   }
 
