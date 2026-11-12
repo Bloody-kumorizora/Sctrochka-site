@@ -10,7 +10,7 @@
     courses: {
       title: 'Курсы',
       fields: ['title', 'description', 'category', 'level', 'duration', 'instructor', 'status', 'stage', 'access', 'image_url', 'subtitle', 'format', 'hours', 'order', 'featured',
-        'tags', 'next', 'audience', 'requirements', 'outcomes', 'projects', 'glyph', 'tone'],
+        'external_url', 'provider', 'tags', 'next', 'audience', 'requirements', 'outcomes', 'projects', 'glyph', 'tone'],
       columns: ['title', 'category', 'level', 'status', 'stage']
     },
     lessons: {
@@ -34,6 +34,7 @@
     stage: 'Готовность курса', access: 'Доступ к урокам', hours: 'Часов занятий (необязательно)', featured: 'Показывать на главной',
     next: 'Следующие курсы (id через запятую)', projects: 'Проекты: по одному в строке — «Название | Описание | HTML, CSS»',
     glyph: 'Значок на обложке (2–3 символа)', tone: 'Цвет обложки', module_summary: 'Описание модуля (достаточно у первого урока модуля)',
+    external_url: 'Ссылка на курс на другом сайте (https://…) — карточка будет вести туда', provider: 'Где проходит курс (Stepik, YouTube…)',
     summary: 'Кратко об уроке', minutes: 'Минут на урок', tasks: 'Практические задания (каждое с новой строки)', explain: 'Пояснение к верному ответу'
   };
   // course_id / lesson_id — ссылки: число (курс из таблицы) или текстовый id (html-basics)
@@ -160,7 +161,17 @@
       '<div class="status-item"><strong>' + st.latency + ' мс</strong><span>время ответа API</span></div>' +
       '<div class="status-item"><strong>' + (window.STROKA_STATS ? window.STROKA_STATS.courses : '—') + '</strong><span>курсов в файлах сайта' + (st.catalog_in_sheet ? ' (запасная копия)' : '') + '</span></div>' +
       '</div>';
-    if (st.mode === 'v2') html += catalogHtml(st);
+    if (st.mode === 'v2') {
+      if (st.catalog_in_sheet) {
+        // курсы, добавленные в файлы сайта после переноса (например, внешние)
+        try {
+          const [rows, files] = await Promise.all([DB.admin.list('courses'), Courses.loadBuiltin()]);
+          const have = new Set(rows.map(r => String(r.id)));
+          st.missing = files.filter(c => !have.has(String(c.id)));
+        } catch (e) { st.missing = []; }
+      }
+      html += catalogHtml(st);
+    }
     if (st.sheets) {
       html += '<h2 style="font-size:1.3rem;margin:32px 0 14px">Листы таблицы «' + escapeHtml(st.spreadsheet) + '»</h2><div class="table-wrap"><table><thead><tr><th>Лист</th><th>Строк</th><th>Состояние</th></tr></thead><tbody>' +
         Object.entries(st.sheets).map(([name, s]) => '<tr><td>' + name + '</td><td>' + (s.exists ? s.rows : '—') + '</td><td>' +
@@ -173,7 +184,12 @@
   function catalogHtml(st) {
     const n = window.STROKA_STATS ? window.STROKA_STATS.courses : 0;
     if (st.catalog_in_sheet) {
-      return '<div class="msg msg-ok" style="margin-top:28px">' + icon('check') + '<p><strong>Каталог хранится в таблице.</strong> Сайт показывает курсы только из таблицы: правки, новые и удалённые курсы видны сразу. Файлы <code>data/</code> — запасная копия на случай, если таблица недоступна.</p></div>';
+      const fresh = st.missing && st.missing.length
+        ? '<div class="panel" style="margin-top:16px"><span class="eyebrow"><b>+</b> Новые курсы</span><h2 style="font-size:1.3rem">В файлах сайта ' + st.missing.length + ' ' + UI.plural(st.missing.length, 'курс', 'курса', 'курсов') + ', которых нет в таблице</h2>' +
+          '<p class="muted">' + st.missing.slice(0, 12).map(c => escapeHtml(c.title)).join(' · ') + (st.missing.length > 12 ? ' …' : '') + '</p>' +
+          '<button class="btn" type="button" id="import-catalog">Добавить в таблицу</button></div>'
+        : '';
+      return '<div class="msg msg-ok" style="margin-top:28px">' + icon('check') + '<p><strong>Каталог хранится в таблице.</strong> Сайт показывает курсы только из таблицы: правки, новые и удалённые курсы видны сразу. Файлы <code>data/</code> — запасная копия на случай, если таблица недоступна.</p></div>' + fresh;
     }
     return '<div class="panel" style="margin-top:28px"><span class="eyebrow"><b>⇄</b> Встроенный каталог</span><h2 style="font-size:1.3rem">Перенести ' + n + ' ' + UI.plural(n, 'курс', 'курса', 'курсов') + ' из файлов сайта в таблицу</h2>' +
       '<p class="muted">Сейчас эти курсы хранятся в файлах <code>data/</code> и в таблице их не видно. После переноса курсы, уроки и вопросы появятся в листах courses, lessons и questions — их можно будет править прямо в таблице или здесь, и сайт будет брать их только оттуда. ' +
@@ -184,7 +200,7 @@
     const btn = $('#import-catalog');
     if (!btn) return;
     btn.addEventListener('click', () => {
-      if (!confirm('Перенести встроенный каталог в Google Таблицу? Это займёт до минуты.')) return;
+      if (!confirm('Записать курсы из файлов сайта в Google Таблицу? Курсы, которые уже есть в таблице, не изменятся. Это займёт до минуты.')) return;
       UI.withBusy(btn, async () => {
         try {
           const rows = await Courses.builtinRows();

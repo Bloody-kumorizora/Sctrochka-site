@@ -38,8 +38,8 @@
   --r: 16px;
   --r-lg: 24px;
   --r-xl: 32px;
-  --max: 1240px;
-  --gutter: clamp(16px, 4vw, 40px);
+  --max: 1600px;
+  --gutter: clamp(16px, 3.2vw, 48px);
   --hdr: 68px;
   --f-display: "Unbounded", "Onest", system-ui, sans-serif;
   --f-body: "Onest", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -135,9 +135,9 @@ kbd { font-size: 11px; padding: 2px 6px; border: 1px solid var(--line-strong); b
 .i { width: 20px; height: 20px; flex: none; }
 .muted { color: var(--muted); }
 .container { width: 100%; max-width: calc(var(--max) + var(--gutter) * 2); margin: 0 auto; padding-inline: var(--gutter); }
-.wrap { width: 100%; max-width: calc(var(--max) + var(--gutter) * 2); margin: 0 auto; padding: 40px var(--gutter) 96px; }
-.section { padding-block: clamp(64px, 9vw, 128px); }
-.section-tight { padding-block: clamp(40px, 6vw, 72px); }
+.wrap { width: 100%; max-width: calc(var(--max) + var(--gutter) * 2); margin: 0 auto; padding: 32px var(--gutter) 64px; }
+.section { padding-block: clamp(44px, 5.5vw, 88px); }
+.section-tight { padding-block: clamp(28px, 3.6vw, 52px); }
 .lead { font-size: clamp(1.05rem, 1.4vw, 1.25rem); line-height: 1.6; color: var(--muted); max-width: 60ch; }
 .stack > * + * { margin-top: 12px; }
 
@@ -149,7 +149,7 @@ kbd { font-size: 11px; padding: 2px 6px; border: 1px solid var(--line-strong); b
 .mark { background: linear-gradient(transparent 58%, var(--lime) 58%, var(--lime) 92%, transparent 92%); padding: 0 .08em; color: inherit; }
 :root[data-theme="dark"] .mark { background: none; color: var(--lime); }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .mark { background: none; color: var(--lime); } }
-.section-head { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: 24px 48px; align-items: end; margin-bottom: clamp(32px, 4vw, 56px); }
+.section-head { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: 16px 48px; align-items: end; margin-bottom: clamp(22px, 2.6vw, 36px); }
 .section-head h2 { margin: 0; }
 .section-head p { margin: 0; color: var(--muted); max-width: 52ch; }
 
@@ -220,7 +220,7 @@ body.menu-open { overflow: hidden; }
 /* ---------------- подвал ---------------- */
 .site-footer { margin-top: auto; background: var(--ink); color: #c9c8d3; }
 :root[data-theme="dark"] .site-footer { background: #08080b; border-top: 1px solid var(--line); }
-.footer-inner { max-width: calc(var(--max) + var(--gutter) * 2); margin: 0 auto; padding: 72px var(--gutter) 40px; display: grid; grid-template-columns: 1.6fr repeat(3, 1fr); gap: 40px; }
+.footer-inner { max-width: calc(var(--max) + var(--gutter) * 2); margin: 0 auto; padding: 52px var(--gutter) 32px; display: grid; grid-template-columns: 1.6fr repeat(3, 1fr); gap: 40px; }
 .site-footer .logo { color: #fff; }
 .site-footer .logo-mark { background: #fff; }
 .site-footer .logo-mark::before { background: #111116; box-shadow: 0 5px 0 #111116, 0 10px 0 #77777f; }
@@ -320,7 +320,7 @@ input[type="checkbox"], input[type="radio"] { width: 20px; height: 20px; min-hei
 .cover-mini { display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; background: var(--c1); color: var(--g); font: 700 13px/1 var(--f-display); letter-spacing: -.04em; flex: none; }
 
 /* ---------------- карточка курса ---------------- */
-.course-card { position: relative; display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 22px; padding: 14px; border-radius: var(--r-lg); background: var(--surface); border: 1px solid var(--line); text-decoration: none; color: inherit; transition: border-color .25s var(--ease), box-shadow .25s var(--ease), transform .25s var(--ease); }
+.course-card { position: relative; display: grid; grid-template-columns: 176px minmax(0, 1fr); gap: 20px; padding: 14px; border-radius: var(--r-lg); background: var(--surface); border: 1px solid var(--line); text-decoration: none; color: inherit; transition: border-color .25s var(--ease), box-shadow .25s var(--ease), transform .25s var(--ease); }
 .course-card:hover { border-color: var(--line-strong); box-shadow: var(--shadow); transform: translateY(-2px); }
 .course-card .cover { aspect-ratio: auto; min-height: 168px; height: 100%; }
 .course-card .cover-glyph { font-size: 3.4rem; }
@@ -343,18 +343,18 @@ input[type="checkbox"], input[type="radio"] { width: 20px; height: 20px; min-hei
 /* =====================================================================
    ГЛАВНАЯ
    ===================================================================== */
-.hero { position: relative; padding: clamp(40px, 6vw, 88px) 0 clamp(56px, 8vw, 112px); overflow: hidden; }
+.hero { position: relative; padding: clamp(28px, 4vw, 64px) 0 clamp(36px, 5vw, 72px); overflow: hidden; }
 .hero-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: clamp(32px, 5vw, 72px); align-items: center; }
 .hero h1 { font-size: clamp(2.3rem, 4.9vw, 4.4rem); margin-bottom: 26px; }
 .hero .lead { margin-bottom: 34px; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
-.hero-facts { display: flex; flex-wrap: wrap; gap: 0; margin-top: 44px; border-top: 1px solid var(--line); }
-.hero-facts div { padding: 18px 28px 0 0; margin-right: 28px; }
+.hero-facts { display: grid; grid-template-columns: repeat(3, max-content); gap: 0; margin-top: 36px; border-top: 1px solid var(--line); }
+.hero-facts div { padding: 18px 28px 0 0; }
 .hero-facts div + div { padding-left: 28px; border-left: 1px solid var(--line); }
 .hero-facts strong { display: block; font: 700 clamp(1.6rem, 2.6vw, 2.2rem)/1 var(--f-display); letter-spacing: -.04em; }
 .hero-facts span { font-size: 14px; color: var(--muted); }
 
-.hero-visual { position: relative; min-height: 520px; }
+.hero-visual { position: relative; min-height: 480px; }
 .editor { position: absolute; left: 0; top: 0; width: 88%; border-radius: 20px; background: var(--code-bg); color: var(--code-ink); box-shadow: var(--shadow-lg); overflow: hidden; border: 1px solid #262633; }
 .editor-bar { display: flex; align-items: center; gap: 8px; padding: 14px 16px; border-bottom: 1px solid #262633; font: 500 12px var(--f-mono); color: #8e8d9c; }
 .editor-bar i { width: 11px; height: 11px; border-radius: 50%; background: #2f2f3d; }
@@ -539,7 +539,7 @@ input[type="checkbox"], input[type="radio"] { width: 20px; height: 20px; min-hei
 /* =====================================================================
    КАТАЛОГ
    ===================================================================== */
-.page-head { padding: clamp(32px, 5vw, 64px) 0 clamp(24px, 3vw, 40px); }
+.page-head { padding: clamp(24px, 3.4vw, 48px) 0 clamp(16px, 2vw, 28px); }
 .page-head h1 { margin-bottom: 14px; }
 .catalog-tools { position: sticky; top: var(--hdr); z-index: 20; background: var(--bg); padding: 14px 0; border-bottom: 1px solid var(--line); margin-bottom: 28px; }
 .tools-row { display: grid; grid-template-columns: minmax(0, 2fr) repeat(4, minmax(0, 1fr)); gap: 10px; }
@@ -548,7 +548,7 @@ input[type="checkbox"], input[type="radio"] { width: 20px; height: 20px; min-hei
 .search-input input { padding-left: 44px; }
 .tools-sub { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
 .result-count { font: 500 14px var(--f-mono); color: var(--muted); }
-.course-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.course-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 480px), 1fr)); gap: 16px; }
 /* карточки вне экрана не рассчитываются, пока до них не прокрутят */
 #list .course-card { content-visibility: auto; contain-intrinsic-size: auto 210px; }
 .filters-toggle { display: none; }
@@ -563,7 +563,7 @@ input[type="checkbox"], input[type="radio"] { width: 20px; height: 20px; min-hei
 .crumbs a { color: var(--muted); text-decoration: none; }
 .crumbs a:hover { color: var(--ink); text-decoration: underline; }
 .crumbs li + li::before { content: "/"; margin-right: 8px; color: var(--line-strong); }
-.course-hero { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: clamp(28px, 4vw, 64px); align-items: start; padding: clamp(24px, 4vw, 48px) 0 clamp(40px, 5vw, 64px); }
+.course-hero { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: clamp(28px, 4vw, 64px); align-items: start; padding: clamp(20px, 3vw, 40px) 0 clamp(28px, 3.6vw, 48px); }
 .course-hero h1 { font-size: clamp(2rem, 4.6vw, 4rem); margin: 18px 0 16px; }
 .course-hero .subtitle { font-size: clamp(1.1rem, 1.6vw, 1.35rem); color: var(--ink-2); margin-bottom: 18px; max-width: 54ch; }
 .course-facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin-top: 32px; border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--surface); }
@@ -616,7 +616,7 @@ input[type="checkbox"], input[type="radio"] { width: 20px; height: 20px; min-hei
 .lesson-dot.open { border-color: var(--accent); color: var(--accent-text); }
 .lesson-dot.done { background: var(--ok); border-color: var(--ok); color: #fff; }
 .lesson-tag { font: 500 12px var(--f-mono); color: var(--muted); white-space: nowrap; }
-.tasks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; counter-reset: t; }
+.tasks { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr)); gap: 16px; counter-reset: t; }
 .task { position: relative; padding: 24px 24px 24px 76px; border-radius: var(--r-lg); background: var(--surface); border: 1px solid var(--line); counter-increment: t; }
 .task::before { content: counter(t, decimal-leading-zero); position: absolute; left: 22px; top: 22px; font: 700 1.3rem/1 var(--f-display); color: var(--accent-text); letter-spacing: -.04em; }
 .task h3 { font-size: 1.02rem; margin-bottom: 6px; }
@@ -643,7 +643,7 @@ input[type="checkbox"], input[type="radio"] { width: 20px; height: 20px; min-hei
 .lesson-nav .lesson-dot { width: 20px; height: 20px; border-width: 2px; flex: none; }
 .lesson-nav .lesson-dot .i { width: 11px; height: 11px; }
 .lesson-nav li > span { color: var(--muted); }
-.lesson-main { min-width: 0; max-width: 800px; }
+.lesson-main { min-width: 0; max-width: 900px; }
 .lesson-main h1 { font-size: clamp(1.8rem, 4vw, 3rem); margin: 14px 0 18px; }
 .prose { font-size: 17.5px; line-height: 1.75; color: var(--ink-2); }
 .prose > * { margin: 0 0 1.1em; }

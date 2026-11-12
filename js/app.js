@@ -243,6 +243,14 @@
     if (btn) btn.setAttribute('aria-expanded', 'false');
   });
 
+  // Ссылки на другие сайты (внешние курсы, ссылки в уроках) открываем в новой вкладке
+  document.addEventListener('click', e => {
+    const a = e.target.closest && e.target.closest('a[href]');
+    if (!a || a.target || !/^https?:$/.test(a.protocol) || a.host === location.host) return;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+  }, true);
+
   /* ================= подвал ================= */
   function contactLinks(cls = '') {
     const c = (cfg.author && cfg.author.contacts) || {};
@@ -384,7 +392,9 @@
       e.target.setAttribute('aria-activedescendant', opts[paletteIndex].id);
     } else if (e.key === 'Enter') {
       e.preventDefault();
-      location.href = opts[paletteIndex].href;
+      const a = opts[paletteIndex];
+      if (a.host !== location.host) window.open(a.href, '_blank', 'noopener');
+      else location.href = a.href;
     }
   }
   document.addEventListener('keydown', e => {

@@ -17,8 +17,12 @@
   const STATUS = {
     full: { label: 'Полный курс', hint: 'Все уроки опубликованы' },
     demo: { label: 'Демо-версия', hint: 'Открыты вводные уроки, остальная программа в разработке' },
-    outline: { label: 'Программа', hint: 'Опубликована программа, уроки в разработке' }
+    outline: { label: 'Программа', hint: 'Опубликована программа, уроки в разработке' },
+    external: { label: 'Внешний курс', hint: 'Курс на другом сайте — откроется по ссылке' }
   };
+  const HTTPS = /^https:\/\/[^\s"'<>]+$/;
+  // Курс на другом сайте: карточка ведёт прямо туда
+  const isExternal = c => !!c && c.status === 'external' && HTTPS.test(c.external || '');
   const SYNONYMS = {
     js: 'javascript', жс: 'javascript', ts: 'typescript', реакт: 'react', гит: 'git', гитхаб: 'github',
     бд: 'sql', база: 'sql', базы: 'sql', нода: 'node', верстка: 'html', дизайн: 'ui', ии: 'ai', нейросети: 'ai',
@@ -49,9 +53,11 @@
   }
 
   /* ---------------- загрузка встроенного каталога ---------------- */
+  // Каталог сайта: свои курсы (data/catalog.js) + реальные курсы на других сайтах (data/external.js)
   function loadBuiltin() {
-    if (window.STROKA_CATALOG) return Promise.resolve(window.STROKA_CATALOG);
-    return loadScript('data/catalog.js').then(() => window.STROKA_CATALOG || []);
+    const own = window.STROKA_CATALOG ? Promise.resolve() : loadScript('data/catalog.js');
+    const ext = window.STROKA_EXTERNAL ? Promise.resolve() : loadScript('data/external.js').catch(() => {});
+    return Promise.all([own, ext]).then(() => (window.STROKA_CATALOG || []).concat(window.STROKA_EXTERNAL || []));
   }
   function loadBuiltinCourse(id) {
     window.STROKA_COURSES = window.STROKA_COURSES || {};
@@ -75,6 +81,7 @@
     const own = lessons.filter(l => String(l.course_id) === id);
     const stage = String(row.stage || '').trim();
     const order = Number(row.order);
+    const external = HTTPS.test(String(row.external_url || '').trim()) ? String(row.external_url).trim() : '';
     return {
       id,
       source: 'sheet',
@@ -87,7 +94,9 @@
       format: row.format || 'Курс',
       duration: row.duration || '',
       hours: Number(row.hours) || 0,
-      status: STATUS[stage] ? stage : 'full',
+      status: external ? 'external' : (STATUS[stage] && stage !== 'external' ? stage : 'full'),
+      external,
+      provider: String(row.provider || '').trim(),
       featured: isYes(row.featured),
       next: splitTags(row.next),
       tags: splitTags(row.tags),
@@ -197,6 +206,9 @@
     const list = await loadBuiltin();
     const meta = list.find(c => c.id === id);
     if (!meta) return null;
+    if (meta.status === 'external') {
+      return finalize(Object.assign({ source: 'builtin', access: 'open', audience: [], requirements: [], outcomes: [], projects: [], modules: [] }, meta));
+    }
     const detail = await loadBuiltinCourse(id);
     if (!detail) throw new Error('Не удалось загрузить программу курса. Проверьте соединение и обновите страницу.');
     const course = Object.assign({ source: 'builtin', access: 'open' }, meta, detail);
@@ -278,9 +290,10 @@
   }
   function sort(list, mode) {
     const lv = c => { const i = LEVELS.indexOf(c.level); return i === -1 ? 9 : i; };
-    const statusRank = { full: 0, demo: 1, outline: 2 };
+    const statusRank = { full: 0, demo: 1, external: 2, outline: 3 };
+    const rank = c => (c.status in statusRank ? statusRank[c.status] : 4);
     const by = {
-      recommended: (a, b) => (b._score || 0) - (a._score || 0) || (statusRank[a.status] - statusRank[b.status]) || a.order - b.order,
+      recommended: (a, b) => (b._score || 0) - (a._score || 0) || (rank(a) - rank(b)) || a.order - b.order,
       level: (a, b) => lv(a) - lv(b) || a.order - b.order,
       'level-desc': (a, b) => lv(b) - lv(a) || a.order - b.order,
       short: (a, b) => (a.hours || 999) - (b.hours || 999),
@@ -333,7 +346,8 @@
   }
 
   /* ---------------- отображение ---------------- */
-  const url = c => 'course.html?id=' + encodeURIComponent(c.id);
+  const url = c => (isExternal(c) ? c.external : 'course.html?id=' + encodeURIComponent(c.id));
+  const linkAttrs = c => (isExternal(c) ? ' target="_blank" rel="noopener noreferrer"' : '');
   const lessonUrl = l => 'lesson.html?id=' + encodeURIComponent(l.id);
   function cover(c, extra = '') {
     if (c.image) return '<div class="cover cover-img ' + extra + '"><img src="' + escapeHtml(c.image) + '" alt="" loading="lazy" decoding="async"></div>';
@@ -353,6 +367,7 @@
     return c.duration || '';
   }
   function lessonsText(c) {
+    if (isExternal(c)) return c.provider || 'Другой сайт';
     const n = c.lessonsCount || 0;
     return n + ' ' + UI.plural(n, 'урок', 'урока', 'уроков');
   }
@@ -365,9 +380,9 @@
     return '<article class="course-card">' + cover(c) +
       '<div class="course-card-body">' +
       '<div class="card-top">' + statusBadge(c) + '<span class="tag">' + escapeHtml(c.level) + '</span><span class="tag">' + escapeHtml(c.format) + '</span></div>' +
-      '<h3><a href="' + url(c) + '">' + escapeHtml(c.title) + '</a></h3>' +
+      '<h3><a href="' + escapeHtml(url(c)) + '"' + linkAttrs(c) + '>' + escapeHtml(c.title) + (isExternal(c) ? '<span class="ext-mark" aria-label="откроется на другом сайте"> ↗</span>' : '') + '</a></h3>' +
       '<p>' + escapeHtml(c.subtitle || c.description) + '</p>' + pr +
-      '<div class="meta"><span>' + UI.icon('layers') + escapeHtml(c.track) + '</span><span>' + UI.icon('book') + escapeHtml(lessonsText(c)) + '</span>' +
+      '<div class="meta"><span>' + UI.icon('layers') + escapeHtml(c.track) + '</span><span>' + UI.icon(isExternal(c) ? 'globe' : 'book') + escapeHtml(lessonsText(c)) + '</span>' +
       (durationText(c) ? '<span>' + UI.icon('clock') + escapeHtml(durationText(c)) + '</span>' : '') + '</div>' +
       '</div>' +
       '<button type="button" class="fav-btn" data-fav="' + escapeHtml(c.id) + '" aria-pressed="false" aria-label="В избранное">' + UI.icon('heart') + '</button>' +
@@ -380,9 +395,20 @@
   // ссылки, прогресс и избранное продолжают работать.
   async function builtinRows() {
     const list = await loadBuiltin();
-    const details = await Promise.all(list.map(c => loadBuiltinCourse(c.id)));
+    const details = await Promise.all(list.map(c => (c.status === 'external' ? null : loadBuiltinCourse(c.id))));
     const courses = [], lessons = [], questions = [];
     list.forEach((c, i) => {
+      if (c.status === 'external') {
+        courses.push({
+          id: c.id, title: c.title, subtitle: c.subtitle || '', description: c.description || '',
+          category: c.track || '', level: c.level || '', format: c.format || '', duration: c.duration || '', hours: c.hours || '',
+          instructor: '', image_url: '', status: 'published', stage: 'external', access: 'open',
+          external_url: c.external, provider: c.provider || '',
+          featured: c.featured ? 'да' : '', order: c.order, tags: (c.tags || []).join(', '), next: (c.next || []).join(', '),
+          glyph: (c.cover && c.cover.glyph) || '', tone: (c.cover && c.cover.tone) || ''
+        });
+        return;
+      }
       const d = details[i];
       if (!d) throw new Error('Не удалось загрузить программу курса «' + c.title + '». Обновите страницу и повторите.');
       courses.push({
@@ -411,6 +437,6 @@
   window.Courses = {
     card,
     LEVELS, STATUS, TONES, builtin, all, get, findLesson, filter, sort, search, related, progressFor,
-    url, lessonUrl, cover, coverMini, statusBadge, durationText, lessonsText, isSheetId, loadBuiltin, builtinRows
+    url, linkAttrs, isExternal, lessonUrl, cover, coverMini, statusBadge, durationText, lessonsText, isSheetId, loadBuiltin, builtinRows
   };
 })();

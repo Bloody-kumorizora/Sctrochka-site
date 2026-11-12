@@ -40,7 +40,7 @@ const SCHEMA = {
 // Необязательные столбцы — создаются при первом сохранении из админ-панели или при переносе каталога
 const OPTIONAL = {
   courses: ['subtitle', 'format', 'tags', 'audience', 'requirements', 'outcomes',
-    'stage', 'access', 'hours', 'order', 'featured', 'next', 'projects', 'glyph', 'tone'],
+    'stage', 'access', 'hours', 'order', 'featured', 'next', 'projects', 'glyph', 'tone', 'external_url', 'provider'],
   lessons: ['module_summary', 'summary', 'minutes', 'tasks'],
   questions: ['explain']
 };
@@ -63,7 +63,7 @@ const NUMBER_FIELDS = ['order', 'correct_index', 'hours', 'minutes'];
 const REQUIRED_NUMBERS = { lessons: ['order'], questions: ['correct_index'] };
 const COURSE_ID_RE = /^(\d+|[a-z0-9][a-z0-9-]{0,59})$/;
 const LESSON_ID_RE = /^(\d+|[a-z0-9][a-z0-9.-]{0,79})$/;
-const STAGES = ['full', 'demo', 'outline'];
+const STAGES = ['full', 'demo', 'outline', 'external'];
 const TONES = ['indigo', 'lime', 'coral', 'sky', 'violet', 'sand', 'ink'];
 const VIDEO_HOSTS = /^https:\/\/(www\.)?(youtube\.com|youtube-nocookie\.com|player\.vimeo\.com|rutube\.ru|vk\.com|vkvideo\.ru)\//;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -753,7 +753,8 @@ function pick(sheet, src) {
   if (out.type !== undefined && ['text', 'video'].indexOf(out.type) === -1) throw new ApiError('bad_request', 'Тип урока: text или video.');
   if (out.video_url && !VIDEO_HOSTS.test(out.video_url)) throw new ApiError('bad_request', 'Видео: используйте ссылку для встраивания YouTube, Vimeo, Rutube или VK Видео.');
   if (out.image_url && !/^https:\/\//.test(out.image_url)) throw new ApiError('bad_request', 'Обложка: нужна ссылка, начинающаяся с https://');
-  if (out.stage && STAGES.indexOf(out.stage) === -1) throw new ApiError('bad_request', 'Стадия курса: full, demo или outline.');
+  if (out.external_url && !/^https:\/\/[^\s"'<>]+$/.test(out.external_url)) throw new ApiError('bad_request', 'Ссылка на курс должна начинаться с https://');
+  if (out.stage && STAGES.indexOf(out.stage) === -1) throw new ApiError('bad_request', 'Стадия курса: full, demo, outline или external.');
   if (out.access && ['open', 'enroll'].indexOf(out.access) === -1) throw new ApiError('bad_request', 'Доступ: open или enroll.');
   if (out.tone && TONES.indexOf(out.tone) === -1) throw new ApiError('bad_request', 'Цвет обложки: ' + TONES.join(', ') + '.');
   if (out.correct_index !== undefined && (out.correct_index < 0 || Math.floor(out.correct_index) !== out.correct_index)) throw new ApiError('bad_request', 'Некорректный номер верного варианта.');

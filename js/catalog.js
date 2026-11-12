@@ -31,7 +31,7 @@
     fillSelect('f-level', Courses.LEVELS.filter(l => courses.some(c => c.level === l)).concat(uniq('level').filter(l => !Courses.LEVELS.includes(l))));
     fillSelect('f-track', uniq('track').sort((a, b) => a.localeCompare(b, 'ru')));
     fillSelect('f-format', uniq('format'));
-    fillSelect('f-status', ['full', 'demo', 'outline'].filter(s => courses.some(c => c.status === s)), s => Courses.STATUS[s].label);
+    fillSelect('f-status', ['full', 'demo', 'outline', 'external'].filter(s => courses.some(c => c.status === s)), s => Courses.STATUS[s].label);
     syncControls();
   }
   function syncControls() {

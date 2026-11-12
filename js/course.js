@@ -179,6 +179,14 @@
       app.innerHTML = '<div class="container section">' + UI.stateBox('error', 'Не удалось загрузить курс', UI.errorText(e), '<button class="btn" type="button" onclick="location.reload()">Повторить</button><a class="btn btn-ghost" href="catalog.html">В каталог</a>') + '</div>';
       return;
     }
+    if (course && Courses.isExternal(course)) {
+      // Курс на другом сайте: перекидываем туда
+      UI.setMeta({ title: course.title, noindex: true });
+      app.innerHTML = '<div class="container section">' + UI.stateBox('info', 'Переходим на ' + (course.provider || 'сайт курса') + '…', course.title,
+        '<a class="btn" href="' + UI.escapeHtml(course.external) + '" rel="noopener noreferrer">Открыть курс ' + icon('arrow') + '</a><a class="btn btn-ghost" href="catalog.html">В каталог</a>') + '</div>';
+      location.replace(course.external);
+      return;
+    }
     if (!course) {
       UI.setMeta({ title: 'Курс не найден', noindex: true });
       app.innerHTML = '<div class="container section">' + UI.stateBox('empty', 'Курс не найден', 'Возможно, ссылка устарела или курс снят с публикации.', '<a class="btn" href="catalog.html">Открыть каталог</a>') + '</div>';

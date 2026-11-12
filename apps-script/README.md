@@ -66,6 +66,9 @@
   * `projects` — по проекту в строке: `Название | Описание | HTML, CSS`;
   * `glyph` (значок обложки, 2–3 символа) и `tone` (цвет: indigo, lime, coral,
     sky, violet, sand, ink).
+  * `external_url` и `provider` — курс на другом сайте: ссылка (https://…)
+    и название площадки (Stepik, FreeCAD Wiki…). Карточка такого курса ведёт
+    сразу по ссылке, уроки в таблице для него не нужны; в `stage` — `external`.
 * **lessons** — `course_id` (id курса), `module` (название модуля), `order`
   (порядок), `title`, `type` (`text` или `video`), `content` (Markdown:
   `## заголовок`, `- список`, блоки кода в тройных обратных кавычках),
