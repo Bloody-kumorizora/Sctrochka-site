@@ -3,7 +3,8 @@
 // («Обзор» → «Добавить в таблицу») они попадают в лист courses вместе с
 // остальным каталогом, а дальше их можно править прямо в таблице
 // (столбцы external_url и provider).
-// Ссылки проверены 12.11.2026. Цены и программы задают сами площадки.
+// Все курсы — на русском языке. Ссылки проверены 12.11.2026.
+// Цены и программы задают сами площадки.
 window.STROKA_EXTERNAL = [
   {
     id: 'ext-stepik-html-css', order: 101, status: 'external', provider: 'Stepik',
@@ -24,13 +25,13 @@ window.STROKA_EXTERNAL = [
     tags: ['html', 'css', 'бесплатно', 'stepik'], cover: { glyph: '{ }', tone: 'sky' }, next: []
   },
   {
-    id: 'ext-mdn-learn', order: 103, status: 'external', provider: 'MDN Web Docs',
-    external: 'https://developer.mozilla.org/ru/docs/Learn',
-    title: 'Изучение веб-разработки (MDN)',
-    subtitle: 'Учебный раздел MDN — справочника, которым пользуются все веб-разработчики',
-    description: 'Обучающий раздел MDN от Mozilla: базовые навыки фронтенд-разработчика — HTML, CSS и JavaScript — по шагам, с примерами и заданиями. Русский перевод сделан сообществом.',
-    track: 'Вёрстка', level: 'Начальный', format: 'Учебник', hours: 0, duration: '',
-    tags: ['html', 'css', 'javascript', 'бесплатно', 'mdn'], cover: { glyph: 'MDN', tone: 'ink' }, next: []
+    id: 'ext-doka', order: 103, status: 'external', provider: 'Дока',
+    external: 'https://doka.guide/',
+    title: 'Дока: справочник веб-разработчика',
+    subtitle: 'Документация по HTML, CSS и JavaScript, написанная по-русски и понятным языком',
+    description: 'Открытый справочник, который веб-разработчики пишут для веб-разработчиков: теги, свойства, приёмы вёрстки и доступности — с примерами, которые удобно держать под рукой во время учёбы.',
+    track: 'Вёрстка', level: 'Начальный', format: 'Справочник', hours: 0, duration: '',
+    tags: ['html', 'css', 'javascript', 'бесплатно', 'справочник'], cover: { glyph: 'Д', tone: 'ink' }, next: []
   },
   {
     id: 'ext-stepik-js', order: 104, status: 'external', provider: 'Stepik',
@@ -51,11 +52,11 @@ window.STROKA_EXTERNAL = [
     tags: ['javascript', 'js', 'бесплатно', 'учебник'], cover: { glyph: 'JS', tone: 'sand' }, next: []
   },
   {
-    id: 'ext-react-docs', order: 106, status: 'external', provider: 'react.dev',
-    external: 'https://ru.react.dev/learn',
+    id: 'ext-react-docs', order: 106, status: 'external', provider: 'ru.react.dev',
+    external: 'https://ru.react.dev/learn/your-first-component',
     title: 'React: официальное руководство',
-    subtitle: 'Документация React на русском — с интерактивными примерами',
-    description: 'Официальный раздел «Изучение React»: компоненты, разметка JSX, состояние, обработка событий и хуки. Примеры можно запускать и менять прямо на странице.',
+    subtitle: 'Русский перевод документации React — начиная с первого компонента',
+    description: 'Официальное руководство React на русском: компоненты, разметка JSX, состояние и обработка событий. Примеры можно запускать и менять прямо на странице.',
     track: 'Фреймворки', level: 'Средний', format: 'Учебник', hours: 0, duration: '',
     tags: ['react', 'бесплатно', 'документация'], cover: { glyph: '⚛', tone: 'sky' }, next: []
   },
@@ -87,21 +88,21 @@ window.STROKA_EXTERNAL = [
     tags: ['python', 'бесплатно', 'stepik'], cover: { glyph: 'Py', tone: 'indigo' }, next: []
   },
   {
-    id: 'ext-freecad-part', order: 110, status: 'external', provider: 'FreeCAD Wiki',
-    external: 'https://wiki.freecad.org/Creating_a_simple_part_with_Draft_and_Part_WB/ru',
-    title: 'FreeCAD: первая деталь',
-    subtitle: 'Официальный урок: простая деталь в верстаках Draft и Part',
-    description: 'FreeCAD — бесплатная программа для параметрического 3D-моделирования. В этом уроке из официальной документации вы построите простую деталь с помощью инструментов верстаков Draft и Part.',
-    track: '3D-моделирование', level: 'Начальный', format: 'Урок', hours: 0, duration: '',
-    tags: ['freecad', 'фрикад', '3d', 'cad', 'бесплатно'], cover: { glyph: '3D', tone: 'lime' }, next: ['ext-freecad-draft']
+    id: 'ext-freecad-course', order: 110, status: 'external', provider: 'YouTube',
+    external: 'https://www.youtube.com/playlist?list=PLrwLdIBuPZQYLgEido7oWpHCu6io0WywY',
+    title: 'FreeCAD для начинающих и продвинутых',
+    subtitle: 'Бесплатный видеокурс на русском языке — плейлист на YouTube',
+    description: 'FreeCAD — бесплатная программа для 3D-моделирования и черчения деталей. Курс собран для тех, кому трудно начать: от первых шагов в программе до более сложных приёмов моделирования.',
+    track: '3D-моделирование', level: 'Начальный', format: 'Видеокурс', hours: 0, duration: '',
+    tags: ['freecad', 'фрикад', '3d', 'cad', 'видео', 'бесплатно'], cover: { glyph: '3D', tone: 'lime' }, next: ['ext-freecad-2026']
   },
   {
-    id: 'ext-freecad-draft', order: 111, status: 'external', provider: 'FreeCAD Wiki',
-    external: 'https://wiki.freecad.org/Draft_tutorial/ru',
-    title: 'FreeCAD: черчение в верстаке Draft',
-    subtitle: 'Официальный урок по черчению для начинающих, около 30 минут',
-    description: 'Урок из документации FreeCAD: создаём новый документ, переключаемся на верстак Draft и шаг за шагом строим 2D-чертёж.',
-    track: '3D-моделирование', level: 'Начальный', format: 'Урок', hours: 0, duration: '≈ 30 мин',
-    tags: ['freecad', 'фрикад', 'чертёж', 'cad', 'бесплатно'], cover: { glyph: '2D', tone: 'sand' }, next: ['ext-freecad-part']
+    id: 'ext-freecad-2026', order: 111, status: 'external', provider: 'YouTube',
+    external: 'https://www.youtube.com/watch?v=eUUh4dT5aGA',
+    title: 'FreeCAD 1.1: новый курс для начинающих (2026)',
+    subtitle: 'Видеоуроки на русском по свежей версии программы — начните с первого урока',
+    description: 'Курс по FreeCAD 1.1 для тех, кто открывает программу впервые. Первый урок — настройка программы, в том числе выбор русского языка интерфейса.',
+    track: '3D-моделирование', level: 'Начальный', format: 'Видеокурс', hours: 0, duration: '',
+    tags: ['freecad', 'фрикад', '3d', 'cad', 'видео', 'бесплатно'], cover: { glyph: '1.1', tone: 'sand' }, next: ['ext-freecad-course']
   }
 ].map(c => Object.assign({ featured: false, lessonsCount: 0, modulesCount: 0, demoLessons: 0, keywords: '' }, c));
